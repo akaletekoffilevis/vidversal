@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 255 255 255;
+  --foreground: 10 10 10;
+  --muted-foreground: 107 114 128;
+  --card: 255 255 255;
+  --border: 229 231 235;
+  --ring: 37 99 235;
+}
+
+.dark {
+  --background: 9 9 11;
+  --foreground: 237 237 237;
+  --muted-foreground: 161 161 170;
+  --card: 18 18 24;
+  --border: 39 39 42;
+  --ring: 96 165 250;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
