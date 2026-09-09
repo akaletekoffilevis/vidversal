@@ -5,6 +5,7 @@ import { CredentialsSignin } from "next-auth";
 import NeonAdapter from "@auth/neon-adapter";
 import { Pool } from "@neondatabase/serverless";
 import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
+import { getEnv } from "./config";
 
 export class EmailNotVerified extends CredentialsSignin {
   code = "email_not_verified";
@@ -16,7 +17,12 @@ export const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
   .filter(Boolean);
 
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL,
+  connectionString: getEnv(
+    "VIDVERSAL_DATABASE_URL_UNPOOLED",
+    "DATABASE_URL_UNPOOLED",
+    "VIDVERSAL_DATABASE_URL",
+    "DATABASE_URL",
+  ),
 });
 
 export function hashPassword(password: string): string {

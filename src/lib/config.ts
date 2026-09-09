@@ -16,6 +16,19 @@ export const DOWNLOAD_API_URL =
 export const DOWNLOAD_ENABLED =
   process.env.NEXT_PUBLIC_ENABLE_DOWNLOAD !== "false";
 
+/**
+ * Lit la première variable d'environnement définie parmi celles fournies.
+ * Sur Vercel les variables Neon sont préfixées VIDVERSAL_ ; en local elles
+ * sont non préfixées (DATABASE_URL / DATABASE_URL_UNPOOLED).
+ */
+export function getEnv(...keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (value) return value;
+  }
+  return undefined;
+}
+
 export function apiUrl(path: string): string {
   return DOWNLOAD_API_URL
     ? `${DOWNLOAD_API_URL}${path}`

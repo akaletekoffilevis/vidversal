@@ -9,8 +9,12 @@ const get = (key) => {
   return m ? m[1].trim() : undefined;
 };
 
-const connectionString = get("DATABASE_URL_UNPOOLED") || get("DATABASE_URL");
-if (!connectionString) throw new Error("DATABASE_URL manquante dans .env.local");
+const connectionString =
+  get("VIDVERSAL_DATABASE_URL_UNPOOLED") ||
+  get("DATABASE_URL_UNPOOLED") ||
+  get("VIDVERSAL_DATABASE_URL") ||
+  get("DATABASE_URL");
+if (!connectionString) throw new Error("DATABASE_URL manquante dans .env.local (ou préfixe VIDVERSAL_)");
 
 const sql = fs.readFileSync("supabase-schema-neon.sql", "utf8");
 
