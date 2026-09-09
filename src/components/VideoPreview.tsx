@@ -15,6 +15,7 @@ import {
   Globe,
 } from "lucide-react";
 import type { VideoInfo } from "@/lib/types";
+import { apiUrl } from "@/lib/config";
 
 const AUDIO_FORMATS = [
   { id: "mp3", label: "MP3", pro: false },
@@ -81,7 +82,7 @@ export function VideoPreview({ data }: { data: VideoInfo }) {
         if (!audioOnly && !gif) params.set("embedSubtitles", "true");
       }
 
-      const res = await fetch(`/api/download?${params.toString()}`);
+      const res = await fetch(apiUrl(`/download?${params.toString()}`));
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         const msg = body.error || "Échec du téléchargement";
