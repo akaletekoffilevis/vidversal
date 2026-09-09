@@ -145,6 +145,14 @@ function LoginForm() {
             autoComplete="current-password"
             required
           />
+          <div className="text-right">
+            <Link
+              href="/forgot-password"
+              className="text-xs text-brand-600 dark:text-brand-400 hover:underline"
+            >
+              {t("login.forgotPassword")}
+            </Link>
+          </div>
 
           {error && !needVerification && (
             <p className="text-xs text-destructive">{error}</p>

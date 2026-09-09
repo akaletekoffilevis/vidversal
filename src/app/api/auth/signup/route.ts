@@ -49,13 +49,14 @@ export async function POST(req: Request) {
       });
     }
 
+    const userId = randomUUID();
     await pool.query(
       'INSERT INTO "User" (id, name, email, role, email_verified) VALUES ($1, $2, $3, $4, $5)',
-      [randomUUID(), name.trim(), cleanEmail, role, !requireVerification]
+      [userId, name.trim(), cleanEmail, role, !requireVerification]
     );
     await pool.query(
       'INSERT INTO "Account" (id, "userId", type, provider, "providerAccountId", password_hash) VALUES ($1, $2, $3, $4, $5, $6)',
-      [randomUUID(), randomUUID(), "credentials", "credentials", cleanEmail, hashPassword(password)]
+      [randomUUID(), userId, "credentials", "credentials", cleanEmail, hashPassword(password)]
     );
 
     if (requireVerification) {

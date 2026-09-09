@@ -47,15 +47,9 @@ export async function sendMail(opts: {
 
 export async function sendVerificationEmail(email: string): Promise<boolean> {
   if (!mailEnabled) return false;
-  const token = randomBytes(32).toString("hex");
-  const expires = new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString();
+  const token = await createToken(email, 1000 * 60 * 60 * 24);
 
-  await pool.query(
-    'INSERT INTO "VerificationToken" (identifier, token, expires) VALUES ($1, $2, $3)',
-    [email, token, expires]
-  );
-
-  const url = new URL("/api/auth/verify-email", buildBaseUrl());
+  const url = new URL("/api/auth/verify-email", getBaseUrl());
   url.searchParams.set("token", token);
   url.searchParams.set("email", email);
   const link = url.toString();
@@ -94,15 +88,85 @@ export async function sendVerificationEmail(email: string): Promise<boolean> {
   });
 }
 
-function buildBaseUrl(): string {
+function createToken(email: string, ttlMs: number): Promise<string> {
+  const token = randomBytes(32).toString("hex");
+  const expires = new Date(Date.now() + ttlMs).toISOString();
+  return pool
+    .query(
+      'INSERT INTO "VerificationToken" (identifier, token, expires) VALUES ($1, $2, $3)',
+      [email, token, expires]
+    )
+    .then(() => token);
+}
+
+/**
+ * URL de base des liens envoyés par email.
+ * Priorité : SITE_URL (domaine public, ex. https://vidversal.fr),
+ * puis l'alias de production Vercel, puis AUTH_URL / NEXTAUTH_URL.
+ * Ne PAS utiliser VERCEL_URL en premier : c'est l'URL interne de déploiement
+ * (https://projet-hash-user.vercel.app) qui change à chaque push
+ * et pointe vers de vieux déploiements → liens morts après quelques heures.
+ */
+export function getBaseUrl(): string {
+  const explicit =
+    process.env.SITE_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.AUTH_URL ||
+    process.env.NEXTAUTH_URL;
+  if (explicit) return explicit.replace(/\/$/, "");
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  if (process.env.NEXTAUTH_URL) return process.env.NEXTAUTH_URL.replace(/\/$/, "");
   return "http://localhost:3012";
+}
+
+export async function sendPasswordResetEmail(email: string): Promise<boolean> {
+  if (!mailEnabled) return false;
+  const token = await createToken(email, 1000 * 60 * 60);
+
+  const url = new URL("/reset-password", getBaseUrl());
+  url.searchParams.set("token", token);
+  url.searchParams.set("email", email);
+  const link = url.toString();
+
+  return sendMail({
+    to: email,
+    subject: "Réinitialisation de votre mot de passe — Vidversal",
+    text: `Bonjour,\n\nVous avez demandé à réinitialiser votre mot de passe Vidversal.\nCliquez sur le lien ci-dessous pour choisir un nouveau mot de passe :\n\n${link}\n\nCe lien expire dans 1 h.\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet email.\n\nL'équipe Vidversal`,
+    html: emailLayout({
+      title: "Réinitialiser votre mot de passe",
+      preheader: "Un lien pour choisir un nouveau mot de passe.",
+      body: `
+        <p style="margin:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:${FOREGROUND}">
+          Bonjour,
+        </p>
+        <p style="margin:0 0 16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:${FOREGROUND}">
+          Vous avez demandé à réinitialiser votre mot de passe <strong>Vidversal</strong>.
+          Cliquez sur le bouton ci-dessous pour en choisir un nouveau :
+        </p>
+        ${emailButton(link, "Réinitialiser mon mot de passe")}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 0">
+          <tr>
+            <td style="border-top:1px solid #e2e8f0;padding-top:16px">
+              <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.6;color:${MUTED}">
+                Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br />
+                <a href="${link}" style="color:${BRAND};word-break:break-all">${link}</a>
+              </p>
+              <p style="margin:16px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.6;color:${MUTED}">
+                Ce lien expire dans <strong>1 h</strong>. Si vous n'êtes pas à l'origine de cette
+                demande, ignorez simplement cet email.
+              </p>
+            </td>
+          </tr>
+        </table>`,
+    }),
+  });
 }
 
 export async function sendWelcomeEmail(email: string): Promise<boolean> {
   if (!mailEnabled) return false;
-  const url = new URL("/", buildBaseUrl()).toString();
+  const url = new URL("/", getBaseUrl()).toString();
   return sendMail({
     to: email,
     subject: "Bienvenue sur Vidversal 🎉",
