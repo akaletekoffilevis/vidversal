@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { VideoInfo } from "@/lib/types";
 import { apiUrl } from "@/lib/config";
+import { useI18n } from "@/lib/i18n";
 
 const AUDIO_FORMATS = [
   { id: "mp3", label: "MP3", pro: false },
@@ -39,6 +40,7 @@ export function VideoPreview({
   data: VideoInfo;
   workerUrl?: string;
 }) {
+  const { t, locale } = useI18n();
   const [showAllQualities, setShowAllQualities] = useState(false);
   const [selectedQuality, setSelectedQuality] = useState<string | null>(null);
   const [selectedFormat, setSelectedFormat] = useState("mp4");
@@ -93,8 +95,8 @@ export function VideoPreview({
       const res = await fetch(resolveUrl(`/download?${params.toString()}`));
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        const msg = body.error || "Échec du téléchargement";
-        setError(res.status === 402 ? `PRO requis : ${msg}` : msg);
+        const msg = body.error || t("preview.networkError");
+        setError(res.status === 402 ? t("preview.proRequired", { msg }) : msg);
         return;
       }
 
@@ -111,7 +113,7 @@ export function VideoPreview({
       a.remove();
       URL.revokeObjectURL(a.href);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur réseau");
+      setError(e instanceof Error ? e.message : t("preview.networkError"));
     } finally {
       setDownloading(false);
     }
@@ -159,11 +161,13 @@ export function VideoPreview({
           {data.playlist && (
             <div className="mb-4 p-3 rounded-xl bg-accent border border-border text-xs">
               <p className="font-semibold mb-1 flex items-center gap-1.5 text-accent-foreground">
-                <Play className="w-3 h-3" /> Playlist détectée
+                <Play className="w-3 h-3" /> {t("preview.playlistDetected")}
               </p>
               <p className="text-muted-foreground">
-                {data.playlistItems?.length ?? 0} vidéos — réservé aux membres
-                PRO <ProBadge show />
+                {t("preview.playlistCount", {
+                  count: data.playlistItems?.length ?? 0,
+                })}{" "}
+                <ProBadge show />
               </p>
             </div>
           )}
@@ -178,7 +182,7 @@ export function VideoPreview({
                   : "text-muted-foreground"
               }`}
             >
-              <Film className="w-3.5 h-3.5" /> Vidéo
+              <Film className="w-3.5 h-3.5" /> {t("preview.tabVideo")}
             </button>
             <button
               onClick={() => setAudioOnly(true)}
@@ -188,14 +192,14 @@ export function VideoPreview({
                   : "text-muted-foreground"
               }`}
             >
-              <Music className="w-3.5 h-3.5" /> Audio
+              <Music className="w-3.5 h-3.5" /> {t("preview.tabAudio")}
             </button>
           </div>
 
           {!audioOnly ? (
             <>
               <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
-                Qualité
+                {t("preview.quality")}
               </p>
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {displayHeights.map((h) => {
@@ -224,13 +228,13 @@ export function VideoPreview({
                     onClick={() => setShowAllQualities(!showAllQualities)}
                     className="text-[11px] text-brand-600 dark:text-brand-400 hover:underline px-2"
                   >
-                    {showAllQualities ? "Moins" : `+${uniqueHeights.length - 4}`}
+                    {showAllQualities ? t("preview.less") : t("preview.more", { n: uniqueHeights.length - 4 })}
                   </button>
                 )}
               </div>
 
               <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                <Film className="w-3 h-3" /> Format
+                <Film className="w-3 h-3" /> {t("preview.format")}
               </p>
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {VIDEO_FORMATS.map((f) => (
@@ -250,7 +254,7 @@ export function VideoPreview({
           ) : (
             <>
               <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                <Music className="w-3 h-3" /> Format audio
+                <Music className="w-3 h-3" /> {t("preview.audioFormat")}
               </p>
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {AUDIO_FORMATS.map((f) => (
@@ -279,21 +283,22 @@ export function VideoPreview({
                   onChange={(e) => setGif(e.target.checked)}
                   className="accent-brand-600"
                 />
-                <ImageIcon className="w-3.5 h-3.5" /> GIF <ProBadge show />
+                <ImageIcon className="w-3.5 h-3.5" /> {t("preview.gif")}{" "}
+                <ProBadge show />
               </label>
             )}
             {data.subtitles.length > 0 && (
               <label className="flex items-center gap-2 text-xs cursor-pointer text-muted-foreground">
-                <Captions className="w-3.5 h-3.5" /> Sous-titres
+                <Captions className="w-3.5 h-3.5" /> {t("preview.subtitles")}
                 <select
                   value={selectedLang || ""}
                   onChange={(e) => setSelectedLang(e.target.value || null)}
                   className="bg-transparent text-xs border border-border rounded px-1.5 py-0.5"
                 >
-                  <option value="">Off</option>
+                  <option value="">{t("preview.subtitleOff")}</option>
                   {data.subtitles.map((s) => (
                     <option key={s.lang} value={s.lang}>
-                      {langName(s.lang)}
+                      {langName(s.lang, locale)}
                     </option>
                   ))}
                 </select>
@@ -312,11 +317,11 @@ export function VideoPreview({
           >
             {downloading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Téléchargement...
+                <Loader2 className="w-4 h-4 animate-spin" /> {t("preview.downloading")}
               </>
             ) : (
               <>
-                <Download className="w-4 h-4" /> Télécharger
+                <Download className="w-4 h-4" /> {t("preview.download")}
               </>
             )}
           </button>
@@ -326,25 +331,17 @@ export function VideoPreview({
   );
 }
 
-const LANG_NAMES: Record<string, string> = {
-  fr: "Français",
-  en: "Anglais",
-  es: "Espagnol",
-  de: "Allemand",
-  it: "Italien",
-  pt: "Portugais",
-  ru: "Russe",
-  ar: "Arabe",
-  ja: "Japonais",
-  ko: "Coréen",
-  zh: "Chinois",
-  hi: "Hindi",
-  nl: "Néerlandais",
-  pl: "Polonais",
-  tr: "Turc",
-};
+const LANG_CACHE = new Map<string, string>();
 
-function langName(lang: string): string {
-  const base = lang.split("-")[0];
-  return LANG_NAMES[base] || lang;
+function langName(lang: string, displayLocale: "fr" | "en"): string {
+  const cacheKey = `${displayLocale}:${lang}`;
+  const cached = LANG_CACHE.get(cacheKey);
+  if (cached) return cached;
+  try {
+    const name = new Intl.DisplayNames([displayLocale], { type: "language" }).of(lang);
+    LANG_CACHE.set(cacheKey, name || lang);
+    return name || lang;
+  } catch {
+    return lang;
+  }
 }

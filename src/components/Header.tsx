@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, X, Moon, Sun } from "lucide-react";
+import { Menu, X, Moon, Sun, Globe } from "lucide-react";
 import { useTheme } from "./theme-provider";
+import { useI18n } from "@/lib/i18n";
 
 export function Header() {
   const { theme, toggle } = useTheme();
+  const { locale, loc, t, setLocale } = useI18n();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -16,6 +18,8 @@ export function Header() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const nextLocale: "fr" | "en" = locale === "fr" ? "en" : "fr";
 
   return (
     <header
@@ -37,36 +41,38 @@ export function Header() {
             href="#features"
             className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors"
           >
-            Fonctionnalités
+            {t("header.features")}
           </Link>
           <Link
             href="/pricing"
             className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors"
           >
-            Tarifs
+            {t("header.pricing")}
           </Link>
           <Link
             href="/login"
             className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors"
           >
-            Se connecter
+            {t("header.login")}
           </Link>
           <Link
             href="/signup"
             className="ml-2 text-sm font-medium px-4 py-2 rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
           >
-            S&apos;inscrire
+            {t("header.signup")}
           </Link>
 
+          <LangToggleButton lang={loc[nextLocale]} onClick={() => setLocale(nextLocale)} />
           <ThemeToggleButton theme={theme} toggle={toggle} />
         </nav>
 
         {/* Mobile: toggle + burger */}
         <div className="flex sm:hidden items-center gap-1">
+          <LangToggleButton lang={loc[nextLocale]} onClick={() => setLocale(nextLocale)} />
           <ThemeToggleButton theme={theme} toggle={toggle} />
           <button
             onClick={() => setOpen(!open)}
-            aria-label="Menu"
+            aria-label={t("header.menu")}
             className="w-9 h-9 rounded-full flex items-center justify-center text-foreground hover:bg-muted transition-colors"
           >
             {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -83,40 +89,55 @@ export function Header() {
               onClick={() => setOpen(false)}
               className="px-3 py-2.5 text-sm rounded-lg hover:bg-muted"
             >
-              Accueil
+              {t("header.home")}
             </Link>
             <Link
               href="#features"
               onClick={() => setOpen(false)}
               className="px-3 py-2.5 text-sm rounded-lg hover:bg-muted"
             >
-              Fonctionnalités
+              {t("header.features")}
             </Link>
             <Link
               href="/pricing"
               onClick={() => setOpen(false)}
               className="px-3 py-2.5 text-sm rounded-lg hover:bg-muted"
             >
-              Tarifs
+              {t("header.pricing")}
             </Link>
             <Link
               href="/login"
               onClick={() => setOpen(false)}
               className="px-3 py-2.5 text-sm rounded-lg hover:bg-muted"
             >
-              Se connecter
+              {t("header.login")}
             </Link>
             <Link
               href="/signup"
               onClick={() => setOpen(false)}
               className="mt-1 px-3 py-2.5 text-sm font-medium text-center rounded-lg bg-primary text-primary-foreground"
             >
-              S&apos;inscrire
+              {t("header.signup")}
             </Link>
           </nav>
         </div>
       )}
     </header>
+  );
+}
+
+function LangToggleButton({ lang, onClick }: { lang: string; onClick: () => void }) {
+  const { t } = useI18n();
+  return (
+    <button
+      onClick={onClick}
+      aria-label={t("header.langToggle")}
+      title={t("header.langToggle")}
+      className="ml-1 w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors gap-1 text-xs font-semibold"
+    >
+      <Globe className="w-4 h-4" />
+      {lang}
+    </button>
   );
 }
 
@@ -127,10 +148,11 @@ function ThemeToggleButton({
   theme: "light" | "dark";
   toggle: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <button
       onClick={toggle}
-      aria-label={theme === "light" ? "Activer le mode sombre" : "Activer le mode clair"}
+      aria-label={theme === "light" ? t("header.themeLight") : t("header.themeDark")}
       className="relative ml-1 w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors overflow-hidden"
     >
       <span

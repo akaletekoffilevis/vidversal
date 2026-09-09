@@ -4,8 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lock, Shield, Loader2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export function AdminLogin() {
+  const { t } = useI18n();
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -25,7 +27,7 @@ export function AdminLogin() {
       router.refresh();
     } else {
       const data = await res.json();
-      setError(data.error ?? "Erreur de connexion.");
+      setError(data.error ?? t("admin.login.error"));
     }
   };
 
@@ -35,9 +37,9 @@ export function AdminLogin() {
         <div className="w-12 h-12 rounded-2xl bg-accent flex items-center justify-center mx-auto mb-4">
           <Shield className="w-6 h-6 text-accent-foreground" />
         </div>
-        <h1 className="text-xl font-bold text-center mb-1">Espace administrateur</h1>
+        <h1 className="text-xl font-bold text-center mb-1">{t("admin.login.title")}</h1>
         <p className="text-sm text-muted-foreground text-center mb-6">
-          Accès réservé au propriétaire de Vidversal.
+          {t("admin.login.subtitle")}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -48,7 +50,7 @@ export function AdminLogin() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="Mot de passe admin"
+              placeholder={t("admin.login.passwordPlaceholder")}
               autoFocus
               className="w-full pl-10 pr-3.5 py-2.5 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
             />
@@ -67,10 +69,10 @@ export function AdminLogin() {
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Vérification...
+                <Loader2 className="w-4 h-4 animate-spin" /> {t("admin.login.verifying")}
               </>
             ) : (
-              "Accéder à l'administration"
+              t("admin.login.access")
             )}
           </button>
         </form>
@@ -80,7 +82,7 @@ export function AdminLogin() {
         href="/"
         className="block text-center text-xs text-muted-foreground hover:text-foreground mt-4"
       >
-        ← Retour à l&apos;accueil
+        {t("admin.login.backHome")}
       </Link>
     </div>
   );

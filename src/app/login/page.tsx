@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Mail, Lock, Loader2, ShieldCheck, RefreshCw } from "lucide-react";
 import { signIn } from "next-auth/react";
+import { useI18n } from "@/lib/i18n";
 
 function LoginForm() {
+  const { t } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -20,16 +22,16 @@ function LoginForm() {
   useEffect(() => {
     const v = searchParams.get("verified");
     if (v === "1") {
-      setInfo("Email vérifié ✓ Vous pouvez maintenant vous connecter.");
+      setInfo(t("login.verifiedBanner"));
     } else if (v === "invalid" || v === "missing") {
-      setError("Lien de vérification invalide ou expiré.");
+      setError(t("login.verifyInvalid"));
     } else if (v === "error") {
-      setError("Erreur lors de la vérification. Réessayez.");
+      setError(t("login.verifyError"));
     }
     if (searchParams.get("email") === "1") {
-      setInfo("Consultez votre boîte mail pour confirmer votre inscription.");
+      setInfo(t("login.checkEmailBanner"));
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,9 +50,9 @@ function LoginForm() {
     if (res?.error) {
       if (res.error === "email_not_verified") {
         setNeedVerification(true);
-        setError("Votre email n&apos;a pas encore été vérifié.");
+        setError(t("login.notVerified"));
       } else {
-        setError("Email ou mot de passe incorrect.");
+        setError(t("login.errorCredentials"));
       }
       return;
     }
@@ -60,7 +62,7 @@ function LoginForm() {
 
   const handleGoogle = async () => {
     if (!process.env.NEXT_PUBLIC_GOOGLE_ENABLED) {
-      setError("Google n'est pas encore activé." );
+      setError(t("login.googleDisabled"));
       return;
     }
     setLoading(true);
@@ -69,7 +71,7 @@ function LoginForm() {
 
   const resendVerification = async () => {
     if (!email) {
-      setError("Indiquez votre email pour renvoyer le lien.");
+      setError(t("login.resendNeedEmail"));
       return;
     }
     setSending(true);
@@ -81,7 +83,7 @@ function LoginForm() {
     });
     setSending(false);
     const data = await res.json();
-    setInfo(data.message || "Consultez votre boîte mail.");
+    setInfo(data.message || t("login.resendOk"));
   };
 
   return (
@@ -90,7 +92,7 @@ function LoginForm() {
         href="/"
         className="absolute top-6 left-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="w-4 h-4" /> Retour
+        <ArrowLeft className="w-4 h-4" /> {t("common.back")}
       </Link>
 
       <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-sm">
@@ -98,7 +100,7 @@ function LoginForm() {
           Vid<span className="text-brand-600 dark:text-brand-400">versal</span>
         </h1>
         <p className="text-sm text-muted-foreground mb-6">
-          Connectez-vous à votre compte
+          {t("login.title")}
         </p>
 
         {info && (
@@ -110,8 +112,7 @@ function LoginForm() {
         {needVerification && (
           <div className="mb-4 p-3 rounded-xl bg-accent border border-border text-xs text-accent-foreground">
             <p className="mb-2">
-              Un lien de vérification a été envoyé à <strong>{email || "votre adresse"}</strong>.
-              Vérifiez votre boîte mail (et les spams).
+              {t("login.verificationSent", { email: email || "…" })}
             </p>
             <button
               onClick={resendVerification}
@@ -119,7 +120,7 @@ function LoginForm() {
               className="inline-flex items-center gap-1.5 text-brand-600 dark:text-brand-400 hover:underline text-xs disabled:opacity-50"
             >
               <RefreshCw className={`w-3 h-3 ${sending ? "animate-spin" : ""}`} />
-              Renvoyer l&apos;email
+              {t("login.resendEmail")}
             </button>
           </div>
         )}
@@ -131,7 +132,7 @@ function LoginForm() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
+              placeholder={t("login.email")}
               required
               className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
             />
@@ -142,7 +143,7 @@ function LoginForm() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Mot de passe"
+              placeholder={t("login.password")}
               required
               className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
             />
@@ -158,7 +159,7 @@ function LoginForm() {
             className="w-full py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm font-medium flex items-center justify-center gap-2 transition-colors"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-            Se connecter
+            {t("login.submit")}
           </button>
         </form>
 
@@ -181,15 +182,15 @@ function LoginForm() {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
               </svg>
-              Continuer avec Google
+              {t("login.google")}
             </button>
           </>
         )}
 
         <p className="text-xs text-muted-foreground text-center mt-6">
-          Pas encore de compte?{" "}
+          {t("login.noAccount")}{" "}
           <Link href="/signup" className="text-brand-600 dark:text-brand-400 hover:underline">
-            S&apos;inscrire
+            {t("login.createAccount")}
           </Link>
         </p>
       </div>

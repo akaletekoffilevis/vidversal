@@ -6,8 +6,10 @@ import type { VideoInfo } from "@/lib/types";
 import { VideoPreview } from "./VideoPreview";
 import { apiUrl } from "@/lib/config";
 import { getSettings, DEFAULT_SETTINGS } from "@/lib/settings";
+import { useI18n } from "@/lib/i18n";
 
 export function DownloadForm() {
+  const { t } = useI18n();
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null);
@@ -48,10 +50,10 @@ export function DownloadForm() {
         body: JSON.stringify({ url: url.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erreur");
+      if (!res.ok) throw new Error(data.error || t("download.errorDefault"));
       setVideoInfo(data.data);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Une erreur est survenue");
+      setError(err instanceof Error ? err.message : t("download.errorDefault"));
     } finally {
       setLoading(false);
     }
@@ -73,13 +75,13 @@ export function DownloadForm() {
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="Collez le lien de la vidéo ici..."
+            placeholder={t("download.placeholder")}
             className="flex-1 min-w-0 ml-3 bg-transparent outline-none text-sm sm:text-base text-foreground placeholder:text-muted-foreground"
           />
           <button
             type="submit"
             disabled={loading || !url.trim() || !downloadEnabled}
-            aria-label="Analyser le lien"
+            aria-label={t("download.analyze")}
             className="ml-3 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-brand-600 hover:bg-brand-700 disabled:bg-muted flex items-center justify-center transition-colors shrink-0"
           >
             {loading ? (
@@ -92,13 +94,13 @@ export function DownloadForm() {
       </form>
 
       <p className="text-xs text-muted-foreground mt-3 text-center">
-        YouTube · TikTok · Instagram · X/Twitter · Facebook · Twitch · Dailymotion · Vimeo · Reddit
+        {t("download.platforms")}
       </p>
 
       {!downloadEnabled && (
         <div className="mt-4 flex items-center justify-center gap-2 p-3 rounded-xl bg-warning/10 border border-warning/30 text-warning text-sm">
           <Clock3 className="w-4 h-4" />
-          Le téléchargement arrive bientôt — le site est en ligne en avant-première.
+          {t("download.soonAvailable")}
         </div>
       )}
 

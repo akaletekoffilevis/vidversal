@@ -30,6 +30,8 @@ Téléchargeur vidéo universel : collez un lien (YouTube, TikTok, Instagram, X,
 - `src/components/` — Header, DownloadForm, Features, Footer, VideoPreview, admin/*
 - `src/lib/settings.ts` — settings admin persistés en localStorage
 - `src/app/admin/` — panneau d'admin (cookie `vidversal_admin` + `ADMIN_PASSWORD`)
+- `src/lib/i18n.tsx` — i18n FR/EN : provider + hook `useI18n` (`t(path, vars)`, `locale`, `setLocale`, `loc`). Choix mémorisé dans `localStorage` (`vidversal-lang`), défaut = langue du navigateur, repli FR côté SSR (pas de routes /fr /en). Dictionnaires : `src/lib/messages/fr.ts` et `en.ts` (structure miroir ~`typeof messagesFr`).
+- Pages (info) : composants clients partagés dans `src/components/info/InfoPages.tsx` (About/Contact/Faq/SectionPage). Le marqueur `CONTACTLINK` dans les dictionnaires injecte le lien « page de contact ». Ne jamais afficher d'email de contact (uniquement le formulaire).
 
 ## Environnement
 Copier `.env.example` → `.env.local` (`.env.local` est gitignoré) :

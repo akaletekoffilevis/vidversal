@@ -23,10 +23,12 @@ import {
   resetSettings,
   exportSettings,
 } from "@/lib/settings";
+import { useI18n } from "@/lib/i18n";
 
 type Tab = "general" | "pricing" | "backup";
 
 export function AdminDashboard() {
+  const { t } = useI18n();
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("general");
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
@@ -72,24 +74,26 @@ export function AdminDashboard() {
           <p className="font-bold text-lg">
             <span className="text-brand-600 dark:text-brand-400">Vid</span>versal
           </p>
-          <p className="text-xs text-muted-foreground mt-0.5">Administration</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {t("admin.dashboard.administration")}
+          </p>
         </div>
         <nav className="flex-1 p-3 space-y-1">
           <AdminNavItem
             icon={<Settings className="w-4 h-4" />}
-            label="Général"
+            label={t("admin.dashboard.general")}
             active={tab === "general"}
             onClick={() => setTab("general")}
           />
           <AdminNavItem
             icon={<Coins className="w-4 h-4" />}
-            label="Tarifs"
+            label={t("admin.dashboard.pricing")}
             active={tab === "pricing"}
             onClick={() => setTab("pricing")}
           />
           <AdminNavItem
             icon={<DatabaseBackup className="w-4 h-4" />}
-            label="Sauvegarde"
+            label={t("admin.dashboard.backup")}
             active={tab === "backup"}
             onClick={() => setTab("backup")}
           />
@@ -99,13 +103,13 @@ export function AdminDashboard() {
             href="/"
             className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
-            <Home className="w-4 h-4" /> Voir le site
+            <Home className="w-4 h-4" /> {t("admin.dashboard.viewSite")}
           </Link>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
-            <LogOut className="w-4 h-4" /> Déconnexion
+            <LogOut className="w-4 h-4" /> {t("admin.dashboard.logout")}
           </button>
         </div>
       </aside>
@@ -114,20 +118,22 @@ export function AdminDashboard() {
       <div className="sm:hidden fixed top-0 inset-x-0 z-20 border-b border-border bg-card flex items-center justify-between px-4 py-3">
         <p className="font-bold">
           <span className="text-brand-600 dark:text-brand-400">Vid</span>versal
-          <span className="text-xs font-normal text-muted-foreground ml-2">Admin</span>
+          <span className="text-xs font-normal text-muted-foreground ml-2">
+            {t("admin.dashboard.administration")}
+          </span>
         </p>
         <div className="flex gap-2">
           <Link
             href="/"
             className="p-2 rounded-lg text-muted-foreground hover:bg-muted"
-            aria-label="Voir le site"
+            aria-label={t("admin.dashboard.viewSite")}
           >
             <Home className="w-4 h-4" />
           </Link>
           <button
             onClick={handleLogout}
             className="p-2 rounded-lg text-muted-foreground hover:bg-muted"
-            aria-label="Déconnexion"
+            aria-label={t("admin.dashboard.logout")}
           >
             <LogOut className="w-4 h-4" />
           </button>
@@ -139,9 +145,9 @@ export function AdminDashboard() {
         <div className="max-w-3xl mx-auto">
           {/* Mobile tabs */}
           <div className="sm:hidden flex gap-1 pt-4 pb-4 overflow-x-auto">
-            <MobileTab label="Général" active={tab === "general"} onClick={() => setTab("general")} />
-            <MobileTab label="Tarifs" active={tab === "pricing"} onClick={() => setTab("pricing")} />
-            <MobileTab label="Sauvegarde" active={tab === "backup"} onClick={() => setTab("backup")} />
+            <MobileTab label={t("admin.dashboard.general")} active={tab === "general"} onClick={() => setTab("general")} />
+            <MobileTab label={t("admin.dashboard.pricing")} active={tab === "pricing"} onClick={() => setTab("pricing")} />
+            <MobileTab label={t("admin.dashboard.backup")} active={tab === "backup"} onClick={() => setTab("backup")} />
           </div>
 
           <div className="sm:pt-10">
@@ -156,9 +162,9 @@ export function AdminDashboard() {
               onClick={handleSave}
               className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
             >
-              <Save className="w-4 h-4" /> Enregistrer
+              <Save className="w-4 h-4" /> {t("admin.dashboard.save")}
             </button>
-            {saved && <span className="text-xs text-success shrink-0">Enregistré ✓</span>}
+            {saved && <span className="text-xs text-success shrink-0">{t("admin.dashboard.saved")}</span>}
           </div>
         </div>
       </main>
@@ -168,11 +174,11 @@ export function AdminDashboard() {
         onClick={handleSave}
         className="sm:flex hidden fixed bottom-6 right-6 items-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium shadow-lg hover:opacity-90 transition-all"
       >
-        <Save className="w-4 h-4" /> Enregistrer les modifications
+        <Save className="w-4 h-4" /> {t("admin.dashboard.saveChanges")}
       </button>
       {saved && (
         <span className="hidden sm:block fixed bottom-6 left-64 text-sm text-success bg-success/10 border border-success/30 rounded-full px-4 py-2 z-50">
-          Modifications enregistrées
+          {t("admin.dashboard.savedChanges")}
         </span>
       )}
     </div>
@@ -310,24 +316,25 @@ function GeneralTab({
   update: (patch: Partial<AppSettings>) => void;
   updateNested: <K extends "free" | "pro">(key: K, patch: Partial<AppSettings[K]>) => void;
 }) {
+  const { t } = useI18n();
   return (
     <>
       <h1 className="text-2xl sm:text-3xl font-bold mb-6 flex items-center gap-2">
-        <Settings className="w-6 h-6 text-brand-600 dark:text-brand-400" /> Général
+        <Settings className="w-6 h-6 text-brand-600 dark:text-brand-400" /> {t("admin.dashboard.general")}
       </h1>
 
       <SectionCard
-        title="Téléchargements"
-        description="Active ou désactive les téléchargements sur le site (utile tant que le worker n'est pas hébergé)."
+        title={t("admin.dashboard.downloads")}
+        description={t("admin.dashboard.downloadsDesc")}
       >
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium flex items-center gap-2">
               <DownloadCloud className="w-4 h-4 text-muted-foreground" />
-              Téléchargement activé
+              {t("admin.dashboard.downloadEnabled")}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Si désactivé, un message « bientôt disponible » s&apos;affiche.
+              {t("admin.dashboard.downloadDisabledHint")}
             </p>
           </div>
           <Switch
@@ -337,41 +344,41 @@ function GeneralTab({
         </div>
 
         <div className="mt-5">
-          <label className="text-xs font-medium mb-1.5 block">URL du worker (backend yt-dlp)</label>
+          <label className="text-xs font-medium mb-1.5 block">{t("admin.dashboard.workerUrl")}</label>
           <input
             type="text"
             value={settings.publicWorkerUrl}
             onChange={(e) => update({ publicWorkerUrl: e.target.value })}
-            placeholder="https://votre-worker.example.com"
+            placeholder={t("admin.dashboard.workerUrlPlaceholder")}
             className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
           />
           <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">
             <ExternalLink className="w-3 h-3" />
-            Laissez vide pour utiliser les routes /api du site (utile en dev local).
+            {t("admin.dashboard.workerUrlHint")}
           </p>
         </div>
       </SectionCard>
 
       <SectionCard
-        title="Bandeau d'information"
-        description="Affiche un message sous le champ de recherche (annonce, maintenance, promo...)."
+        title={t("admin.dashboard.bannerTitle")}
+        description={t("admin.dashboard.bannerDesc")}
       >
         <input
           type="text"
           value={settings.bannerText}
           onChange={(e) => update({ bannerText: e.target.value })}
-          placeholder="Ex : 🔒 Videz la 4K en beta — sans compte requise..."
+          placeholder={t("admin.dashboard.bannerPlaceholder")}
           className="w-full px-3.5 py-2.5 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
         />
       </SectionCard>
 
       <SectionCard
-        title="Limites du plan gratuit"
-        description="Quotas appliqués aux utilisateurs sans abonnement."
+        title={t("admin.dashboard.freeLimitsTitle")}
+        description={t("admin.dashboard.freeLimitsDesc")}
       >
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="text-xs font-medium block mb-1.5">Qualité max</label>
+            <label className="text-xs font-medium block mb-1.5">{t("admin.dashboard.maxQuality")}</label>
             <NumberInput
               value={settings.free.maxQuality}
               suffix="p"
@@ -379,17 +386,17 @@ function GeneralTab({
             />
           </div>
           <div>
-            <label className="text-xs font-medium block mb-1.5">Téléchargements / jour</label>
+            <label className="text-xs font-medium block mb-1.5">{t("admin.dashboard.dailyLimit")}</label>
             <NumberInput
               value={settings.free.dailyLimit}
               onChange={(v) => updateNested("free", { dailyLimit: v })}
             />
           </div>
           <div>
-            <label className="text-xs font-medium block mb-1.5">Taille du batch</label>
+            <label className="text-xs font-medium block mb-1.5">{t("admin.dashboard.batchSize")}</label>
             <NumberInput
               value={settings.free.batchSize}
-              suffix="vid."
+              suffix={t("admin.dashboard.perDay")}
               onChange={(v) => updateNested("free", { batchSize: v })}
             />
           </div>
@@ -406,19 +413,20 @@ function PricingTab({
   settings: AppSettings;
   updateNested: <K extends "free" | "pro">(key: K, patch: Partial<AppSettings[K]>) => void;
 }) {
+  const { t } = useI18n();
   return (
     <>
       <h1 className="text-2xl sm:text-3xl font-bold mb-6 flex items-center gap-2">
-        <Coins className="w-6 h-6 text-brand-600 dark:text-brand-400" /> Tarifs
+        <Coins className="w-6 h-6 text-brand-600 dark:text-brand-400" /> {t("admin.dashboard.pricing")}
       </h1>
 
       <SectionCard
-        title="Abonnement PRO"
-        description="Prix affichés sur la page /pricing et utilisés pour Stripe."
+        title={t("admin.dashboard.proTitle")}
+        description={t("admin.dashboard.proDesc")}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-medium block mb-1.5">Prix mensuel (€)</label>
+            <label className="text-xs font-medium block mb-1.5">{t("admin.dashboard.monthlyPrice")}</label>
             <NumberInput
               value={settings.pro.monthlyPriceEur}
               suffix="€"
@@ -427,7 +435,7 @@ function PricingTab({
           </div>
           <div>
             <label className="text-xs font-medium block mb-1.5">
-              Prix annuel (€) <span className="text-success">−34%</span>
+              {t("admin.dashboard.yearlyPrice")} <span className="text-success">−34%</span>
             </label>
             <NumberInput
               value={settings.pro.yearlyPriceEur}
@@ -441,8 +449,7 @@ function PricingTab({
       <div className="rounded-2xl border border-warning/30 bg-warning/10 p-4 flex items-start gap-3">
         <Lock className="w-4 h-4 text-warning mt-0.5 shrink-0" />
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Les clés Stripe ne sont pas encore branchées. Quand ce sera fait, ces prix
-          devront être ceux créés dans votre tableau de bord Stripe (price IDs).
+          {t("admin.dashboard.stripeNote")}
         </p>
       </div>
     </>
@@ -450,6 +457,7 @@ function PricingTab({
 }
 
 function BackupTab() {
+  const { t } = useI18n();
   const [importStatus, setImportStatus] = useState("");
 
   const handleExport = () => {
@@ -463,9 +471,9 @@ function BackupTab() {
   };
 
   const handleReset = () => {
-    if (confirm("Réinitialiser tous les paramètres aux valeurs par défaut ?")) {
+    if (confirm(t("admin.dashboard.resetConfirm"))) {
       resetSettings();
-      setImportStatus("Paramètres réinitialisés. Rechargez la page.");
+      setImportStatus(t("admin.dashboard.resetDone"));
       setTimeout(() => location.reload(), 600);
     }
   };
@@ -478,11 +486,11 @@ function BackupTab() {
       try {
         const parsed = JSON.parse(String(reader.result));
         saveSettings({ ...DEFAULT_SETTINGS, ...parsed });
-        setImportStatus("Paramètres importés avec succès.");
+        setImportStatus(t("admin.dashboard.importOk"));
         localStorage.setItem("vidversal-settings", JSON.stringify({ ...DEFAULT_SETTINGS, ...parsed }));
         setTimeout(() => location.reload(), 700);
       } catch {
-        setImportStatus("Fichier invalide.");
+        setImportStatus(t("admin.dashboard.importInvalid"));
       }
     };
     reader.readAsText(file);
@@ -491,29 +499,29 @@ function BackupTab() {
   return (
     <>
       <h1 className="text-2xl sm:text-3xl font-bold mb-6 flex items-center gap-2">
-        <DatabaseBackup className="w-6 h-6 text-brand-600 dark:text-brand-400" /> Sauvegarde
+        <DatabaseBackup className="w-6 h-6 text-brand-600 dark:text-brand-400" /> {t("admin.dashboard.backup")}
       </h1>
 
       <SectionCard
-        title="Export / Import"
-        description="Vos paramètres sont stockés dans le navigateur. Exportez-les en JSON pour les conserver ou les transférer."
+        title={t("admin.dashboard.exportImport")}
+        description={t("admin.dashboard.exportDesc")}
       >
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={handleExport}
             className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-all"
           >
-            <DownloadCloud className="w-4 h-4" /> Exporter le fichier JSON
+            <DownloadCloud className="w-4 h-4" /> {t("admin.dashboard.exportBtn")}
           </button>
           <label className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-border text-sm font-medium cursor-pointer hover:bg-muted transition-colors">
-            <DatabaseBackup className="w-4 h-4" /> Importer un fichier
+            <DatabaseBackup className="w-4 h-4" /> {t("admin.dashboard.importBtn")}
             <input type="file" accept="application/json" className="hidden" onChange={handleImport} />
           </label>
           <button
             onClick={handleReset}
             className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors"
           >
-            Réinitialiser
+            {t("admin.dashboard.reset")}
           </button>
         </div>
         {importStatus && (
@@ -524,9 +532,7 @@ function BackupTab() {
       <div className="rounded-2xl border border-border bg-card p-5 flex items-start gap-3">
         <Download className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Astuce : exportez ce fichier après chaque changement important et rangez-le
-          avec vos autres fichiers du projet. Il peut être restauré depuis n&apos;importe
-          quel navigateur.
+          {t("admin.dashboard.tip")}
         </p>
       </div>
     </>
