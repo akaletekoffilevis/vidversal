@@ -109,8 +109,6 @@ export function DownloadForm() {
       )}
 
       {videoInfo && <VideoPreview data={videoInfo} workerUrl={workerUrl} />}
-
-      <div id="features" />
     </section>
   );
 }

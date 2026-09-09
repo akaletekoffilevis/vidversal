@@ -48,7 +48,7 @@ const features = [
 
 export function Features() {
   return (
-    <section className="w-full max-w-4xl mx-auto px-4 sm:px-6 mt-16 sm:mt-20 mb-16">
+    <section id="features" className="w-full max-w-4xl mx-auto px-4 sm:px-6 mt-16 sm:mt-20 mb-16">
       <h2 className="text-center text-2xl sm:text-3xl font-bold mb-2 px-4">
         Fonctionnalités
       </h2>
