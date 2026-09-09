@@ -63,6 +63,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!email || !password) return null;
 
         try {
+          // Répare les liens de connexion orphelins créés par l'ancien bug
+          // (Account credentials avec userid aléatoire) : rattache chaque ligne
+          // au User du même email pour que l'ancien mot de passe refonctionne.
+          await pool.query(
+            `UPDATE "Account" a
+             SET userid = u.id
+             FROM "User" u
+             WHERE a.provider = 'credentials'
+               AND NOT EXISTS (SELECT 1 FROM "User" x WHERE x.id = a.userid)
+               AND u.email = a.provideraccountid`
+          ).catch(() => {});
+
           const { rows } = await pool.query(
             `SELECT u.*, a.password_hash FROM "User" u
              LEFT JOIN "Account" a ON a.userid = u.id AND a.provider = 'credentials'
