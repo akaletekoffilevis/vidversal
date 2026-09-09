@@ -9,23 +9,28 @@ const ThemeContext = createContext<{ theme: Theme; toggle: () => void }>({
   toggle: () => {},
 });
 
+/**
+ * Fournit le thème clair/sombre.
+ * Le script anti-flash est injecté dans <head> (layout.tsx) pour que
+ * le thème soit appliqué AVANT le rendu React → aucun flash.
+ */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
-    const stored = localStorage.getItem("vidversal-theme") as Theme | null;
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initial = stored ?? (prefersDark ? "dark" : "light");
-    setTheme(initial);
-    document.documentElement.classList.toggle("dark", initial === "dark");
+    const current = document.documentElement.classList.contains("dark")
+      ? "dark"
+      : "light";
+    setTheme(current);
   }, []);
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    localStorage.setItem("vidversal-theme", theme);
-  }, [theme]);
-
-  const toggle = () => setTheme((t) => (t === "light" ? "dark" : "light"));
+  const toggle = () => {
+    const next: Theme = theme === "light" ? "dark" : "light";
+    setTheme(next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+    document.documentElement.style.colorScheme = next;
+    localStorage.setItem("vidversal-theme", next);
+  };
 
   return (
     <ThemeContext.Provider value={{ theme, toggle }}>
@@ -35,3 +40,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useTheme = () => useContext(ThemeContext);
+
+/** Source du script anti-flash à intégrer dans <head> */
+export const themeInitScript = `(function(){try{var t=localStorage.getItem("vidversal-theme");if(!t){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}if(t==="dark"){document.documentElement.classList.add("dark");}document.documentElement.style.colorScheme=t;}catch(e){document.documentElement.style.colorScheme="light"}})();`;

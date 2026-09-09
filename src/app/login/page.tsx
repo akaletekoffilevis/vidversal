@@ -53,7 +53,7 @@ export default function LoginPage() {
         <ArrowLeft className="w-4 h-4" /> Retour
       </Link>
 
-      <div className="w-full max-w-sm rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8 shadow-sm">
+      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-sm">
         <h1 className="text-2xl font-bold mb-1">
           Vid<span className="text-brand-600 dark:text-brand-400">versal</span>
         </h1>
@@ -63,30 +63,30 @@ export default function LoginPage() {
 
         <form onSubmit={handleEmailLogin} className="space-y-4">
           <div className="relative">
-            <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              required
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-transparent text-sm outline-none focus:border-brand-500 transition-colors"
-            />
-          </div>
-          <div className="relative">
-            <Lock className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Mot de passe"
-              required
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-transparent text-sm outline-none focus:border-brand-500 transition-colors"
-            />
-          </div>
+            <Mail className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+<input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            required
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-card text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+          />
+        </div>
+        <div className="relative">
+          <Lock className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Mot de passe"
+            required
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-card text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+          />
+        </div>
 
           {error && (
-            <p className="text-xs text-red-500">{error}</p>
+            <p className="text-xs text-destructive">{error}</p>
           )}
 
           <button
@@ -100,15 +100,15 @@ export default function LoginPage() {
         </form>
 
         <div className="flex items-center gap-3 my-5">
-          <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-700" />
+          <div className="flex-1 h-px bg-border" />
           <span className="text-[10px] text-muted-foreground uppercase">ou</span>
-          <div className="flex-1 h-px bg-zinc-200 dark:bg-zinc-700" />
+          <div className="flex-1 h-px bg-border" />
         </div>
 
         <button
           onClick={handleGoogle}
           disabled={loading}
-          className="w-full py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 text-sm font-medium flex items-center justify-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+          className="w-full py-2.5 rounded-lg border border-border text-sm font-medium flex items-center justify-center gap-2 hover:bg-muted transition-colors"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />

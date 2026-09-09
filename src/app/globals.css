@@ -2,24 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============ Design tokens ============ */
 :root {
+  /* Fond & texte */
   --background: 255 255 255;
-  --foreground: 10 10 10;
-  --muted-foreground: 107 114 128;
+  --foreground: 24 24 27;
   --card: 255 255 255;
-  --border: 229 231 235;
-  --ring: 37 99 235;
+  --card-foreground: 24 24 27;
+
+  /* Texte & chrome */
+  --muted: 244 244 245;
+  --muted-foreground: 113 113 122;
+  --border: 228 228 231;
+  --input: 228 228 231;
+  --ring: 59 130 246;
+
+  /* Couleurs de marque */
+  --primary: 37 99 235;
+  --primary-foreground: 255 255 255;
+  --secondary: 244 244 245;
+  --secondary-foreground: 39 39 42;
+
+  /* États */
+  --accent: 239 246 255;
+  --accent-foreground: 29 78 216;
+  --destructive: 239 68 68;
+  --destructive-foreground: 255 255 255;
+  --success: 16 185 129;
+  --warning: 245 158 11;
 }
 
 .dark {
-  --background: 9 9 11;
-  --foreground: 237 237 237;
+  --background: 10 10 12;
+  --foreground: 250 250 250;
+  --card: 17 17 21;
+  --card-foreground: 250 250 250;
+
+  --muted: 24 24 30;
   --muted-foreground: 161 161 170;
-  --card: 18 18 24;
-  --border: 39 39 42;
+  --border: 39 39 46;
+  --input: 39 39 46;
   --ring: 96 165 250;
+
+  --primary: 96 165 250;
+  --primary-foreground: 10 10 12;
+  --secondary: 39 39 46;
+  --secondary-foreground: 228 228 231;
+
+  --accent: 23 37 84;
+  --accent-foreground: 191 219 254;
+  --destructive: 248 113 113;
+  --destructive-foreground: 15 23 42;
+  --success: 52 211 153;
+  --warning: 251 191 36;
 }
 
+/* ============ Base ============ */
 * {
   box-sizing: border-box;
 }
@@ -32,12 +70,44 @@ body {
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: rgb(var(--foreground));
+  background-color: rgb(var(--background));
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.dark body {
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Transitions douces partout au changement de thème */
+body *,
+body *::before,
+body *::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+
+::selection {
+  background-color: rgb(var(--primary) / 0.2);
+}
+
+/* Scrollbar discrète */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--muted-foreground) / 0.3);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
 }

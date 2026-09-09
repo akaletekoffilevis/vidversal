@@ -26,7 +26,7 @@ import {
 const features = [
   { icon: Download, title: "Toutes plateformes", desc: "YouTube, TikTok, Instagram, X, Facebook, Twitch, Vimeo...", free: true },
   { icon: MonitorPlay, title: "Qualité HD/4K/8K", desc: "Choisissez la résolution exacte de votre téléchargement", free: false },
-  { icon: Music, title: "Extraction audio MP3", desc: "Extraitz l'audio en MP3, FLAC ou WAV haute fidélité", free: false },
+  { icon: Music, title: "Extraction audio MP3", desc: "Extrayez l'audio en MP3, FLAC ou WAV haute fidélité", free: false },
   { icon: Layers, title: "Multi-format", desc: "MP4, WebM, MKV, AVI, MOV, GIF animé...", free: false },
   { icon: ListVideo, title: "Playlists & chaînes", desc: "Téléchargez une playlist ou une chaîne entière d'un clic", free: false },
   { icon: Languages, title: "Sous-titres traduits", desc: "Extraction et traduction automatique des sous-titres", free: false },
@@ -48,22 +48,28 @@ const features = [
 
 export function Features() {
   return (
-    <section className="w-full max-w-4xl mx-auto px-4 mt-20 mb-16">
-      <h2 className="text-center text-2xl font-bold mb-2">Fonctionnalités</h2>
-      <p className="text-center text-muted-foreground text-sm mb-10">
+    <section className="w-full max-w-4xl mx-auto px-4 sm:px-6 mt-16 sm:mt-20 mb-16">
+      <h2 className="text-center text-2xl sm:text-3xl font-bold mb-2 px-4">
+        Fonctionnalités
+      </h2>
+      <p className="text-center text-muted-foreground text-sm mb-8 sm:mb-10 px-4">
         Ce que Vidversal peut faire pour vous
       </p>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {features.map((f) => (
           <div
             key={f.title}
-            className="group relative p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-sm transition-all"
+            className="group relative p-3.5 sm:p-4 rounded-xl border border-border bg-card hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-sm transition-all"
           >
             <f.icon className="w-5 h-5 text-brand-600 dark:text-brand-400 mb-2" />
-            <h3 className="text-sm font-semibold mb-0.5">{f.title}</h3>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">{f.desc}</p>
+            <h3 className="text-[13px] sm:text-sm font-semibold mb-0.5 leading-snug">
+              {f.title}
+            </h3>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              {f.desc}
+            </p>
             {!f.free && (
-              <span className="absolute top-2 right-2 text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 font-medium">
+              <span className="absolute top-2 right-2 text-[9px] px-1.5 py-0.5 rounded-full bg-warning/20 text-warning font-medium">
                 PRO
               </span>
             )}

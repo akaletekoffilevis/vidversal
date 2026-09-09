@@ -11,8 +11,7 @@ import {
   Music,
   Captions,
   Film,
-  Image,
-  Globe,
+  Image as ImageIcon,
 } from "lucide-react";
 import type { VideoInfo } from "@/lib/types";
 import { apiUrl } from "@/lib/config";
@@ -33,7 +32,13 @@ const VIDEO_FORMATS = [
   { id: "avi", label: "AVI", pro: true },
 ];
 
-export function VideoPreview({ data }: { data: VideoInfo }) {
+export function VideoPreview({
+  data,
+  workerUrl,
+}: {
+  data: VideoInfo;
+  workerUrl?: string;
+}) {
   const [showAllQualities, setShowAllQualities] = useState(false);
   const [selectedQuality, setSelectedQuality] = useState<string | null>(null);
   const [selectedFormat, setSelectedFormat] = useState("mp4");
@@ -64,6 +69,9 @@ export function VideoPreview({ data }: { data: VideoInfo }) {
     ? uniqueHeights
     : uniqueHeights.slice(0, 4);
 
+  const resolveUrl = (path: string) =>
+    workerUrl ? `${workerUrl}${path}` : apiUrl(path);
+
   const startDownload = async () => {
     setDownloading(true);
     setError(null);
@@ -82,7 +90,7 @@ export function VideoPreview({ data }: { data: VideoInfo }) {
         if (!audioOnly && !gif) params.set("embedSubtitles", "true");
       }
 
-      const res = await fetch(apiUrl(`/download?${params.toString()}`));
+      const res = await fetch(resolveUrl(`/download?${params.toString()}`));
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         const msg = body.error || "Échec du téléchargement";
@@ -111,16 +119,20 @@ export function VideoPreview({ data }: { data: VideoInfo }) {
 
   const ProBadge = ({ show }: { show?: boolean }) =>
     show ? (
-      <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 font-medium">
+      <span className="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded-full bg-warning/20 text-warning font-medium">
         <Lock className="w-2.5 h-2.5" /> PRO
       </span>
     ) : null;
 
+  const chipBase =
+    "bg-muted border-border hover:border-brand-400 dark:hover:border-brand-600";
+  const chipActive = "bg-brand-600 text-white border-brand-600 hover:border-brand-600";
+
   return (
-    <div className="mt-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden shadow-sm">
+    <div className="mt-6 rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
       <div className="flex flex-col sm:flex-row">
         {/* Miniature */}
-        <div className="relative sm:w-64 shrink-0 aspect-video sm:aspect-auto bg-zinc-100 dark:bg-zinc-800">
+        <div className="relative sm:w-64 shrink-0 aspect-video sm:aspect-auto bg-muted">
           <img
             src={data.thumbnail}
             alt={data.title}
@@ -137,14 +149,16 @@ export function VideoPreview({ data }: { data: VideoInfo }) {
 
         {/* Infos + options */}
         <div className="flex-1 p-4 sm:p-5 flex flex-col">
-          <h3 className="font-semibold text-sm mb-0.5">{data.title}</h3>
+          <h3 className="font-semibold text-sm leading-snug mb-0.5 line-clamp-2">
+            {data.title}
+          </h3>
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground mb-4">
             <User className="w-3 h-3" /> {data.uploader}
           </p>
 
           {data.playlist && (
-            <div className="mb-4 p-3 rounded-xl bg-brand-50 dark:bg-brand-950 border border-brand-100 dark:border-brand-900 text-xs">
-              <p className="font-semibold mb-1 flex items-center gap-1.5">
+            <div className="mb-4 p-3 rounded-xl bg-accent border border-border text-xs">
+              <p className="font-semibold mb-1 flex items-center gap-1.5 text-accent-foreground">
                 <Play className="w-3 h-3" /> Playlist détectée
               </p>
               <p className="text-muted-foreground">
@@ -155,12 +169,12 @@ export function VideoPreview({ data }: { data: VideoInfo }) {
           )}
 
           {/* Tabs Vidéo / Audio */}
-          <div className="flex gap-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg p-1 w-fit mb-3">
+          <div className="flex gap-1 bg-muted rounded-lg p-1 w-fit mb-3">
             <button
               onClick={() => setAudioOnly(false)}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                 !audioOnly
-                  ? "bg-white dark:bg-zinc-900 shadow-sm"
+                  ? "bg-card shadow-sm"
                   : "text-muted-foreground"
               }`}
             >
@@ -170,7 +184,7 @@ export function VideoPreview({ data }: { data: VideoInfo }) {
               onClick={() => setAudioOnly(true)}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                 audioOnly
-                  ? "bg-white dark:bg-zinc-900 shadow-sm"
+                  ? "bg-card shadow-sm"
                   : "text-muted-foreground"
               }`}
             >
@@ -187,23 +201,21 @@ export function VideoPreview({ data }: { data: VideoInfo }) {
                 {displayHeights.map((h) => {
                   const fmt = videoFormats.find((f) => f.height === h);
                   const pro = h > 1080;
+                  const active = selectedQuality === fmt?.formatId;
                   return (
                     <button
                       key={h}
                       onClick={() =>
                         setSelectedQuality(
-                          selectedQuality === fmt?.formatId
-                            ? null
-                            : fmt?.formatId || null
+                          active ? null : fmt?.formatId || null
                         )
                       }
                       className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all ${
-                        selectedQuality === fmt?.formatId
-                          ? "bg-brand-600 text-white border-brand-600"
-                          : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:border-brand-300 dark:hover:border-brand-700"
+                        active ? chipActive : chipBase
                       }`}
                     >
                       {h}p{fmt?.fps && fmt.fps >= 60 ? ` ${fmt.fps}fps` : ""}
+                      <ProBadge show={pro} />
                     </button>
                   );
                 })}
@@ -226,9 +238,7 @@ export function VideoPreview({ data }: { data: VideoInfo }) {
                     key={f.id}
                     onClick={() => setSelectedFormat(f.id)}
                     className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all flex items-center gap-1.5 ${
-                      selectedFormat === f.id
-                        ? "bg-brand-600 text-white border-brand-600"
-                        : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:border-brand-300 dark:hover:border-brand-700"
+                      selectedFormat === f.id ? chipActive : chipBase
                     }`}
                   >
                     {f.label}
@@ -248,9 +258,7 @@ export function VideoPreview({ data }: { data: VideoInfo }) {
                     key={f.id}
                     onClick={() => setSelectedAudio(f.id)}
                     className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-all flex items-center gap-1.5 ${
-                      selectedAudio === f.id
-                        ? "bg-brand-600 text-white border-brand-600"
-                        : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:border-brand-300 dark:hover:border-brand-700"
+                      selectedAudio === f.id ? chipActive : chipBase
                     }`}
                   >
                     {f.label}
@@ -271,7 +279,7 @@ export function VideoPreview({ data }: { data: VideoInfo }) {
                   onChange={(e) => setGif(e.target.checked)}
                   className="accent-brand-600"
                 />
-                <Image className="w-3.5 h-3.5" /> GIF <ProBadge show />
+                <ImageIcon className="w-3.5 h-3.5" /> GIF <ProBadge show />
               </label>
             )}
             {data.subtitles.length > 0 && (
@@ -280,7 +288,7 @@ export function VideoPreview({ data }: { data: VideoInfo }) {
                 <select
                   value={selectedLang || ""}
                   onChange={(e) => setSelectedLang(e.target.value || null)}
-                  className="bg-transparent text-xs border border-zinc-200 dark:border-zinc-700 rounded px-1.5 py-0.5"
+                  className="bg-transparent text-xs border border-border rounded px-1.5 py-0.5"
                 >
                   <option value="">Off</option>
                   {data.subtitles.map((s) => (
@@ -294,7 +302,7 @@ export function VideoPreview({ data }: { data: VideoInfo }) {
           </div>
 
           {error && (
-            <p className="text-xs text-red-500 mb-3">{error}</p>
+            <p className="text-xs text-destructive mb-3">{error}</p>
           )}
 
           <button

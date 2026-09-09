@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider, themeInitScript } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
   title: "Vidversal — Téléchargez n'importe quelle vidéo",
@@ -15,6 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className={`font-sans antialiased`}>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
