@@ -120,7 +120,7 @@ export default function ContactPage() {
 
           <p className="text-xs text-muted-foreground flex items-center gap-1.5 pt-2">
             <Mail className="w-3.5 h-3.5" />
-            Vous pouvez aussi nous écrire : contact@vidversal.app
+            Réponse sous 24-48 h.
           </p>
         </form>
       )}

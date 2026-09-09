@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Menu, X, Moon, Sun } from "lucide-react";
 import { useTheme } from "./theme-provider";
@@ -8,9 +8,23 @@ import { useTheme } from "./theme-provider";
 export function Header() {
   const { theme, toggle } = useTheme();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="absolute top-0 inset-x-0 z-20">
+    <header
+      className={`fixed top-0 inset-x-0 z-20 transition-all duration-300 ${
+        scrolled || open
+          ? "bg-background/85 backdrop-blur-md border-b border-border shadow-sm"
+          : "bg-transparent border-b border-transparent"
+      }`}
+    >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
           <span className="text-2xl font-bold tracking-tight">
