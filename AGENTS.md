@@ -61,3 +61,4 @@ Consentement à télécharger uniquement pour usage personnel, vidéos publiques
 - Ne pas réintroduire `next/font` (polices système uniquement).
 - `next build` très lent ici : itérer avec `next dev`.
 - Le worker de téléchargement (yt-dlp + ffmpeg) n'est pas encore déployé : à héberger gratuitement (Oracle Cloud ARM / Railway / Render / Fly.io) et coller son URL dans `/admin → Général → URL du worker`.
+- Sur Vercel, les variables Neon sont préfixées `VIDVERSAL_` (le code les lit via `getEnv` dans `src/lib/config.ts`).
