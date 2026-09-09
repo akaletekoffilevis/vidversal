@@ -11,14 +11,29 @@ export default function ContactPage() {
   const [message, setMessage] = useState("");
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSending(true);
-    // TODO: brancher sur l'envoi réel (worker ou service d'e-mail)
-    await new Promise((r) => setTimeout(r, 800));
-    setSending(false);
-    setSent(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, subject, message }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Une erreur est survenue.");
+        return;
+      }
+      setSent(true);
+    } catch {
+      setError("Impossible d'envoyer le message. Vérifiez votre connexion.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -117,6 +132,8 @@ export default function ContactPage() {
               </>
             )}
           </button>
+
+          {error && <p className="text-xs text-destructive">{error}</p>}
 
           <p className="text-xs text-muted-foreground flex items-center gap-1.5 pt-2">
             <Mail className="w-3.5 h-3.5" />

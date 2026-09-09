@@ -6,7 +6,8 @@ create table if not exists "User" (
   name text,
   email text not null,
   emailVerified timestamp with time zone,
-  image text
+  image text,
+  email_verified boolean not null default false
 );
 
 create table if not exists "Account" (
@@ -41,5 +42,6 @@ create table if not exists "VerificationToken" (
 );
 
 -- Prépare le rôle admin (met à jour l'email à l'inscription)
+alter table "User" add column if not exists email_verified boolean not null default false;
 alter table "User" add column if not exists role text not null default 'user';
 create index if not exists "User_email_key" on "User" (email);
