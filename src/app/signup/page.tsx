@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Mail, Lock, Loader2, User, MailCheck, RefreshCw } from "lucide-react";
+import { ArrowLeft, Mail, Loader2, User, MailCheck, RefreshCw } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { PasswordInput } from "@/components/PasswordInput";
 
 const ERROR_MAP: Record<string, string> = {
   "Email invalide.": "signup.errorEmail",
@@ -142,18 +143,14 @@ export default function SignupPage() {
               className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </div>
-          <div className="relative">
-            <Lock className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t("signup.passwordPlaceholder")}
-              minLength={8}
-              required
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-            />
-          </div>
+          <PasswordInput
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={t("signup.passwordPlaceholder")}
+            autoComplete="new-password"
+            minLength={8}
+            required
+          />
 
           {error && <p className="text-xs text-destructive">{error}</p>}
 

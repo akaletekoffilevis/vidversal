@@ -4,6 +4,8 @@ export const messagesFr = {
     pro: "PRO",
     popular: "POPULAIRE",
     contactPage: "page de contact",
+    showPassword: "Afficher le mot de passe",
+    hidePassword: "Masquer le mot de passe",
   },
   header: {
     home: "Accueil",
@@ -15,6 +17,8 @@ export const messagesFr = {
     themeLight: "Activer le mode sombre",
     themeDark: "Activer le mode clair",
     langToggle: "Changer de langue",
+    switchToEnglish: "Passer en anglais",
+    switchToFrench: "Passer en français",
   },
   footer: {
     madeWith: "Fait avec",

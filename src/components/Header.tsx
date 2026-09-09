@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, X, Moon, Sun, Globe } from "lucide-react";
+import { Menu, X, Moon, Sun } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useI18n } from "@/lib/i18n";
 
 export function Header() {
   const { theme, toggle } = useTheme();
-  const { locale, loc, t, setLocale } = useI18n();
+  const { locale, t, setLocale } = useI18n();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -62,13 +62,13 @@ export function Header() {
             {t("header.signup")}
           </Link>
 
-          <LangToggleButton lang={loc[nextLocale]} onClick={() => setLocale(nextLocale)} />
+          <LangToggleButton target={nextLocale} onClick={() => setLocale(nextLocale)} />
           <ThemeToggleButton theme={theme} toggle={toggle} />
         </nav>
 
         {/* Mobile: toggle + burger */}
         <div className="flex sm:hidden items-center gap-1">
-          <LangToggleButton lang={loc[nextLocale]} onClick={() => setLocale(nextLocale)} />
+          <LangToggleButton target={nextLocale} onClick={() => setLocale(nextLocale)} />
           <ThemeToggleButton theme={theme} toggle={toggle} />
           <button
             onClick={() => setOpen(!open)}
@@ -126,18 +126,58 @@ export function Header() {
   );
 }
 
-function LangToggleButton({ lang, onClick }: { lang: string; onClick: () => void }) {
+function LangToggleButton({ target, onClick }: { target: "fr" | "en"; onClick: () => void }) {
   const { t } = useI18n();
+  const label = target === "fr" ? t("header.switchToFrench") : t("header.switchToEnglish");
   return (
     <button
       onClick={onClick}
-      aria-label={t("header.langToggle")}
-      title={t("header.langToggle")}
-      className="ml-1 w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors gap-1 text-xs font-semibold"
+      aria-label={label}
+      title={label}
+      className="ml-1 w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
     >
-      <Globe className="w-4 h-4" />
-      {lang}
+      {target === "fr" ? (
+        <FranceFlag className="w-6 h-4" />
+      ) : (
+        <UkFlag className="w-6 h-4" />
+      )}
     </button>
+  );
+}
+
+function FranceFlag({ className }: { className?: string }) {
+  return (
+    <span
+      className={`inline-flex overflow-hidden rounded-[3px] ring-1 ring-black/15 dark:ring-white/25 ${className}`}
+    >
+      <svg viewBox="0 0 24 16" className="w-full h-full" aria-hidden="true">
+        <rect width="8" height="16" fill="#0055A4" />
+        <rect x="8" width="8" height="16" fill="#FFFFFF" />
+        <rect x="16" width="8" height="16" fill="#EF4135" />
+      </svg>
+    </span>
+  );
+}
+
+function UkFlag({ className }: { className?: string }) {
+  return (
+    <span
+      className={`inline-flex overflow-hidden rounded-[3px] ring-1 ring-black/15 dark:ring-white/25 ${className}`}
+    >
+      <svg viewBox="0 0 640 480" className="w-full h-full" aria-hidden="true">
+        <path fill="#012169" d="M0 0h640v480H0z" />
+        <path
+          fill="#FFFFFF"
+          d="m75 0 244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0h75z"
+        />
+        <path
+          fill="#C8102E"
+          d="m424 281 216 159v40L369 281h55zm-184 20 6 35L54 480H0l240-179zM640 0v3L391 191l2-44L590 0h50zM0 0l239 176h-60L0 42V0z"
+        />
+        <path fill="#FFFFFF" d="M241 0v480h158V0H241zM0 204v72h640v-72H0z" />
+        <path fill="#C8102E" d="M263 0v204h377v72H263v204h-46V276H0v-72h217V0h46z" />
+      </svg>
+    </span>
   );
 }
 

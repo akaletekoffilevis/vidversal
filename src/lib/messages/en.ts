@@ -4,6 +4,8 @@ export const messagesEn = {
     pro: "PRO",
     popular: "POPULAR",
     contactPage: "contact page",
+    showPassword: "Show password",
+    hidePassword: "Hide password",
   },
   header: {
     home: "Home",
@@ -15,6 +17,8 @@ export const messagesEn = {
     themeLight: "Enable dark mode",
     themeDark: "Enable light mode",
     langToggle: "Change language",
+    switchToEnglish: "Switch to English",
+    switchToFrench: "Switch to French",
   },
   footer: {
     madeWith: "Made with",

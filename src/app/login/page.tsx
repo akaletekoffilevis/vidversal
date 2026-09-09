@@ -3,9 +3,10 @@
 import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Mail, Lock, Loader2, ShieldCheck, RefreshCw } from "lucide-react";
+import { ArrowLeft, Mail, Loader2, ShieldCheck, RefreshCw } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useI18n } from "@/lib/i18n";
+import { PasswordInput } from "@/components/PasswordInput";
 
 function LoginForm() {
   const { t } = useI18n();
@@ -137,17 +138,13 @@ function LoginForm() {
               className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </div>
-          <div className="relative">
-            <Lock className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t("login.password")}
-              required
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-background text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-            />
-          </div>
+          <PasswordInput
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={t("login.password")}
+            autoComplete="current-password"
+            required
+          />
 
           {error && !needVerification && (
             <p className="text-xs text-destructive">{error}</p>
