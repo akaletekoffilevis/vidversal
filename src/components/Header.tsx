@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, X, Moon, Sun } from "lucide-react";
+import { Menu, X, Moon, Sun, LogOut } from "lucide-react";
 import { useTheme } from "./theme-provider";
 import { useI18n } from "@/lib/i18n";
+import { useSession, signOut } from "next-auth/react";
 
 export function Header() {
   const { theme, toggle } = useTheme();
   const { locale, t, setLocale } = useI18n();
+  const { data: session } = useSession();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -20,6 +22,13 @@ export function Header() {
   }, []);
 
   const nextLocale: "fr" | "en" = locale === "fr" ? "en" : "fr";
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  const user = session?.user;
+
+  const onLogout = () => {
+    setOpen(false);
+    signOut({ callbackUrl: "/" });
+  };
 
   return (
     <header
@@ -49,18 +58,48 @@ export function Header() {
           >
             {t("header.pricing")}
           </Link>
-          <Link
-            href="/login"
-            className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors"
-          >
-            {t("header.login")}
-          </Link>
-          <Link
-            href="/signup"
-            className="ml-2 text-sm font-medium px-4 py-2 rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
-          >
-            {t("header.signup")}
-          </Link>
+
+          {user ? (
+            <>
+              {role === "admin" && (
+                <Link
+                  href="/admin"
+                  className="px-3 py-2 text-sm font-medium text-brand-600 dark:text-brand-400 hover:bg-muted rounded-full transition-colors"
+                >
+                  {t("header.admin")}
+                </Link>
+              )}
+              <span
+                className="px-3 py-2 text-sm font-medium text-foreground truncate max-w-[160px]"
+                title={user.email || undefined}
+              >
+                {user.name || user.email}
+              </span>
+              <button
+                onClick={onLogout}
+                aria-label={t("header.logout")}
+                title={t("header.logout")}
+                className="ml-1 w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors"
+              >
+                {t("header.login")}
+              </Link>
+              <Link
+                href="/signup"
+                className="ml-2 text-sm font-medium px-4 py-2 rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+              >
+                {t("header.signup")}
+              </Link>
+            </>
+          )}
 
           <LangToggleButton target={nextLocale} onClick={() => setLocale(nextLocale)} />
           <ThemeToggleButton theme={theme} toggle={toggle} />
@@ -105,20 +144,45 @@ export function Header() {
             >
               {t("header.pricing")}
             </Link>
-            <Link
-              href="/login"
-              onClick={() => setOpen(false)}
-              className="px-3 py-2.5 text-sm rounded-lg hover:bg-muted"
-            >
-              {t("header.login")}
-            </Link>
-            <Link
-              href="/signup"
-              onClick={() => setOpen(false)}
-              className="mt-1 px-3 py-2.5 text-sm font-medium text-center rounded-lg bg-primary text-primary-foreground"
-            >
-              {t("header.signup")}
-            </Link>
+            {user ? (
+              <>
+                {role === "admin" && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setOpen(false)}
+                    className="px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-muted text-brand-600 dark:text-brand-400"
+                  >
+                    {t("header.admin")}
+                  </Link>
+                )}
+                <span className="px-3 py-2.5 text-sm font-medium text-foreground truncate">
+                  {user.name || user.email}
+                </span>
+                <button
+                  onClick={onLogout}
+                  className="px-3 py-2.5 text-sm text-muted-foreground rounded-lg hover:bg-muted text-left"
+                >
+                  {t("header.logout")}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setOpen(false)}
+                  className="px-3 py-2.5 text-sm rounded-lg hover:bg-muted"
+                >
+                  {t("header.login")}
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => setOpen(false)}
+                  className="mt-1 px-3 py-2.5 text-sm font-medium text-center rounded-lg bg-primary text-primary-foreground"
+                >
+                  {t("header.signup")}
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       )}

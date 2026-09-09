@@ -57,7 +57,11 @@ function LoginForm() {
       }
       return;
     }
-    router.push("/");
+
+    // Redirige les admins vers /admin, les autres vers l'accueil.
+    const sessionData = await fetch("/api/auth/session").then((r) => r.json()).catch(() => null);
+    const role = (sessionData?.user as { role?: string } | undefined)?.role;
+    router.push(role === "admin" ? "/admin" : "/");
     router.refresh();
   };
 

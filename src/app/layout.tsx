@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider, themeInitScript } from "@/components/theme-provider";
 import { I18nProvider } from "@/lib/i18n";
+import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
   title: "Vidversal — Téléchargez n'importe quelle vidéo",
@@ -20,9 +21,11 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className={`font-sans antialiased`}>
-        <I18nProvider>
-          <ThemeProvider>{children}</ThemeProvider>
-        </I18nProvider>
+        <SessionProvider>
+          <I18nProvider>
+            <ThemeProvider>{children}</ThemeProvider>
+          </I18nProvider>
+        </SessionProvider>
       </body>
     </html>
   );

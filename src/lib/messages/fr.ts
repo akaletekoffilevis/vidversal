@@ -19,6 +19,8 @@ export const messagesFr = {
     langToggle: "Changer de langue",
     switchToEnglish: "Passer en anglais",
     switchToFrench: "Passer en français",
+    admin: "Administration",
+    logout: "Se déconnecter",
   },
   footer: {
     madeWith: "Fait avec",
