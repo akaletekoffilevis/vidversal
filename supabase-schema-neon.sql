@@ -45,3 +45,6 @@ create table if not exists "VerificationToken" (
 alter table "User" add column if not exists email_verified boolean not null default false;
 alter table "User" add column if not exists role text not null default 'user';
 create index if not exists "User_email_key" on "User" (email);
+
+-- Nettoie les lignes de connexion orphelines créées par un ancien bug (userId aléatoire)
+delete from "Account" where provider = 'credentials' and userid not in (select id from "User");

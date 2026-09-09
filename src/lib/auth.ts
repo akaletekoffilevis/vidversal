@@ -65,7 +65,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           const { rows } = await pool.query(
             `SELECT u.*, a.password_hash FROM "User" u
-             LEFT JOIN "Account" a ON a."userId" = u.id AND a.provider = 'credentials'
+             LEFT JOIN "Account" a ON a.userid = u.id AND a.provider = 'credentials'
              WHERE u.email = $1 LIMIT 1`,
             [email]
           );

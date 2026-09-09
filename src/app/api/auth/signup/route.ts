@@ -54,8 +54,13 @@ export async function POST(req: Request) {
       'INSERT INTO "User" (id, name, email, role, email_verified) VALUES ($1, $2, $3, $4, $5)',
       [userId, name.trim(), cleanEmail, role, !requireVerification]
     );
+    // Nettoie d'éventuelles lignes orphelines créées par l'ancien bug (userId aléatoire)
     await pool.query(
-      'INSERT INTO "Account" (id, "userId", type, provider, "providerAccountId", password_hash) VALUES ($1, $2, $3, $4, $5, $6)',
+      'DELETE FROM "Account" WHERE provider = $1 AND provideraccountid = $2 AND userid NOT IN (SELECT id FROM "User")',
+      ["credentials", cleanEmail]
+    );
+    await pool.query(
+      'INSERT INTO "Account" (id, userid, type, provider, provideraccountid, password_hash) VALUES ($1, $2, $3, $4, $5, $6)',
       [randomUUID(), userId, "credentials", "credentials", cleanEmail, hashPassword(password)]
     );
 

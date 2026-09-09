@@ -23,10 +23,7 @@ export async function GET(req: Request) {
       return Response.redirect(new URL("/login?verified=invalid", req.url));
     }
 
-    await pool.query(
-      'UPDATE "User" SET email_verified = true, "emailVerified" = $1 WHERE email = $2',
-      [new Date().toISOString(), email]
-    );
+    await pool.query('UPDATE "User" SET email_verified = true WHERE email = $1', [email]);
     await pool.query('DELETE FROM "VerificationToken" WHERE identifier = $1', [email]);
 
     void sendWelcomeEmail(email);

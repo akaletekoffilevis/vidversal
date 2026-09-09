@@ -41,13 +41,22 @@ export async function POST(req: Request) {
     const userId = userResult.rows[0].id as string;
 
     const hash = hashPassword(password);
+    // Supprime toute ligne credentials orpheline de cet email (ancien bug)
     await pool.query(
-      `INSERT INTO "Account" (id, "userId", type, provider, "providerAccountId", password_hash)
+      `DELETE FROM "Account" WHERE provider = 'credentials'
+       AND provideraccountid = $1 AND userid NOT IN (SELECT id FROM "User")`,
+      [cleanEmail]
+    );
+    await pool.query(
+      `INSERT INTO "Account" (id, userid, type, provider, provideraccountid, password_hash)
        VALUES ($1, $2, 'credentials', 'credentials', $3, $4)
-       ON CONFLICT (provider, "providerAccountId")
-       DO UPDATE SET password_hash = EXCLUDED.password_hash`,
+       ON CONFLICT (provider, provideraccountid)
+       DO UPDATE SET userid = EXCLUDED.userid, password_hash = EXCLUDED.password_hash`,
       [randomUUID(), userId, cleanEmail, hash]
     );
+
+    // Réussir à utiliser le lien de reset prouve que l'on possède l'email.
+    await pool.query('UPDATE "User" SET email_verified = true WHERE id = $1', [userId]);
 
     await pool.query('DELETE FROM "VerificationToken" WHERE identifier = $1', [cleanEmail]);
 
