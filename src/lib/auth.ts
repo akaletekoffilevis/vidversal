@@ -6,6 +6,7 @@ import NeonAdapter from "@auth/neon-adapter";
 import { Pool } from "@neondatabase/serverless";
 import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { getEnv } from "./config";
+import { getDbUserByEmail } from "./db";
 
 export class EmailNotVerified extends CredentialsSignin {
   code = "email_not_verified";
@@ -82,10 +83,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             [email]
           );
           const user = rows[0] as
-            | { id: string; name?: string; email: string; password_hash?: string; image?: string; email_verified?: boolean }
+            | { id: string; name?: string; email: string; password_hash?: string; image?: string; email_verified?: boolean; banned?: boolean }
             | undefined;
 
           if (!user || !user.password_hash || !verifyPassword(password, user.password_hash)) {
+            return null;
+          }
+          if (user.banned) {
             return null;
           }
           if (!user.email_verified) {
@@ -108,6 +112,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.uid = user.id;
+        if (token.email) {
+          const dbUser = await getDbUserByEmail(token.email).catch(() => null);
+          token.tier = dbUser?.tier ?? "free";
+          token.banned = dbUser?.banned ?? false;
+          token.avatar_emoji = dbUser?.avatar_emoji ?? null;
+          token.lang = dbUser?.lang ?? null;
+          token.theme = dbUser?.theme ?? "system";
+        }
+      }
+      if (token.role !== "admin") {
         token.role = ADMIN_EMAILS.includes(String(token.email).toLowerCase())
           ? "admin"
           : "user";
@@ -118,16 +132,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user && token) {
         session.user.id = token.uid as string;
         session.user.role = (token.role as "user" | "admin") || "user";
+        session.user.tier = (token.tier as "free" | "pro") || "free";
+        session.user.banned = Boolean(token.banned);
+        session.user.avatar_emoji = (token.avatar_emoji as string | null | undefined) ?? null;
+        session.user.lang = (token.lang as string | null | undefined) ?? null;
+        session.user.theme = (token.theme as string | null | undefined) ?? "system";
       }
       return session;
     },
     async signIn({ user }) {
-      if (user.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
-        // Diffuse le rôle admin dans la BD pour les accès externes
-        await pool.query(
-          "UPDATE \"User\" SET role = $1 WHERE email = $2",
-          ["admin", user.email.toLowerCase()]
-        ).catch(() => {});
+      if (user.email) {
+        const email = user.email.toLowerCase();
+        if (ADMIN_EMAILS.includes(email)) {
+          // Diffuse le rôle admin dans la BD pour les accès externes
+          await pool.query(
+            "UPDATE \"User\" SET role = $1 WHERE email = $2",
+            ["admin", email]
+          ).catch(() => {});
+          return true;
+        }
+        const dbUser = await getDbUserByEmail(email).catch(() => null);
+        if (dbUser?.banned) return false;
       }
       return true;
     },

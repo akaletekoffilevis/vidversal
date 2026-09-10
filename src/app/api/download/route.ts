@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { downloadVideo } from "@/lib/ytdlp";
 import { getTier, assertAudioFormat, assertVideoFormat, isTierError } from "@/lib/tier";
+import { recordDownload, ensureSchema } from "@/lib/db";
 import fs from "fs/promises";
 import path from "path";
 
@@ -65,9 +66,27 @@ async function handle(req: NextRequest) {
 
     const tier = await getTier();
 
+    if (tier.banned) {
+      return NextResponse.json({ error: "Compte suspendu" }, { status: 403 });
+    }
+
+    // --- Quota journalier (comptes connectés) ---
+    if (tier.userId) {
+      const daily = tier.limits.dailyDownloads;
+      if (daily > 0 && tier.usageToday >= daily) {
+        return NextResponse.json(
+          {
+            error: "Quota quotidien atteint — passez à PRO pour télécharger sans limite",
+            code: "DAILY_LIMIT",
+          },
+          { status: 429 }
+        );
+      }
+    }
+
     // --- Gating premium ---
-    if (audioFormat !== "mp3") assertAudioFormat(tier.tier, audioFormat);
-    if (videoFormat !== "mp4") assertVideoFormat(tier.tier, videoFormat);
+    if (audioFormat !== "mp3") assertAudioFormat(tier.tier, audioFormat, tier.limits);
+    if (videoFormat !== "mp4") assertVideoFormat(tier.tier, videoFormat, tier.limits);
     if (gif && !tier.limits.gif)
       throw new Error("La création de GIF est réservée aux membres PRO");
     if ((lang || subtitleOnly) && !tier.limits.subtitles)
@@ -86,6 +105,32 @@ async function handle(req: NextRequest) {
 
     const fileBuffer = await fs.readFile(filePath);
     await fs.unlink(filePath).catch(() => {});
+
+    // --- Limite de taille du plan ---
+    const maxBytes = tier.limits.maxFileSizeMB * 1024 * 1024;
+    if (maxBytes > 0 && fileBuffer.byteLength > maxBytes) {
+      return NextResponse.json(
+        {
+          error: `Fichier trop volumineux (max ${tier.limits.maxFileSizeMB} Mo sur le plan ${tier.tier})`,
+          code: "SIZE_LIMIT",
+        },
+        { status: 429 }
+      );
+    }
+
+    // --- Historique (comptes connectés) ---
+    if (tier.userId && filename) {
+      await ensureSchema().catch(() => {});
+      const hostname = new URL(url).hostname;
+      await recordDownload(tier.userId, {
+        url,
+        title: stripExt(filename),
+        platform: hostname,
+        format: audioOnly ? `audio:${audioFormat}` : subtitleOnly ? "subtitle" : gif ? "gif" : `video:${videoFormat}`,
+        quality: formatId || undefined,
+        size_bytes: fileBuffer.byteLength,
+      }).catch(() => {});
+    }
 
     let contentType = "application/octet-stream";
     const ext = path.extname(filename).toLowerCase();
@@ -133,4 +178,8 @@ async function handle(req: NextRequest) {
 
 function isDownloadLimitError(error: unknown): error is Error {
   return error instanceof Error && "code" in error && (error as Error & { code?: string }).code === "LIMIT";
+}
+
+function stripExt(name: string): string {
+  return name.replace(/\.[^/.]+$/, "");
 }

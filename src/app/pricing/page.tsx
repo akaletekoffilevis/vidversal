@@ -7,19 +7,29 @@ import { Footer } from "@/components/Footer";
 import { Check, Lock, Crown } from "lucide-react";
 import { DEFAULT_SETTINGS, getSettings } from "@/lib/settings";
 import { useI18n } from "@/lib/i18n";
+import type { PublicPlans } from "@/lib/usePlan";
 
 export default function PricingPage() {
   const { t } = useI18n();
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [plans, setPlans] = useState<PublicPlans | null>(null);
   useEffect(() => {
     const apply = () => setSettings(getSettings());
     apply();
     window.addEventListener("vidversal-settings-changed", apply);
+    fetch("/api/plans")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((p) => setPlans(p))
+      .catch(() => null);
     return () => window.removeEventListener("vidversal-settings-changed", apply);
   }, []);
 
-  const monthly = settings.pro.monthlyPriceEur.toFixed(2).replace(".00", "");
-  const yearly = String(settings.pro.yearlyPriceEur);
+  const defaultPricing = plans?.pricing ?? {
+    monthlyPriceEur: settings.pro.monthlyPriceEur,
+    yearlyPriceEur: settings.pro.yearlyPriceEur,
+  };
+  const monthly = (defaultPricing.monthlyPriceEur || 0).toFixed(2).replace(".00", "");
+  const yearly = String(defaultPricing.yearlyPriceEur ?? 0);
 
   const freeCount = 6;
   const proCount = 11;

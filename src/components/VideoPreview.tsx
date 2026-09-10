@@ -12,10 +12,12 @@ import {
   Captions,
   Film,
   Image as ImageIcon,
+  Heart,
 } from "lucide-react";
 import type { VideoInfo } from "@/lib/types";
 import { apiUrl } from "@/lib/config";
 import { useI18n } from "@/lib/i18n";
+import { usePlan } from "@/lib/usePlan";
 
 const AUDIO_FORMATS = [
   { id: "mp3", label: "MP3", pro: false },
@@ -41,6 +43,7 @@ export function VideoPreview({
   workerUrl?: string;
 }) {
   const { t, locale } = useI18n();
+  const { limits, isLoggedIn } = usePlan();
   const [showAllQualities, setShowAllQualities] = useState(false);
   const [selectedQuality, setSelectedQuality] = useState<string | null>(null);
   const [selectedFormat, setSelectedFormat] = useState("mp4");
@@ -50,6 +53,7 @@ export function VideoPreview({
   const [gif, setGif] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [favState, setFavState] = useState<"idle" | "saving" | "saved" | "login">("idle");
 
   const videoFormats = useMemo(
     () =>
@@ -78,6 +82,15 @@ export function VideoPreview({
     setDownloading(true);
     setError(null);
     try {
+      if (workerUrl && isLoggedIn) {
+        const me = await fetch("/api/me").then((r) => (r.ok ? r.json() : null)).catch(() => null);
+        const daily = me?.limits?.dailyDownloads ?? limits.dailyDownloads;
+        const used = me?.usageToday ?? 0;
+        if (daily > 0 && used >= daily) {
+          setError(t("download.quotaExceeded"));
+          return;
+        }
+      }
       const params = new URLSearchParams({ url: data.webpageUrl });
       if (audioOnly) {
         params.set("audioOnly", "true");
@@ -105,6 +118,21 @@ export function VideoPreview({
       const match = disposition.match(/filename="([^"]+)"/);
       const filename = match ? match[1] : "vidversal-download";
 
+      if (isLoggedIn) {
+        fetch("/api/me/downloads", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            url: data.webpageUrl,
+            title: data.title,
+            platform: data.platform,
+            format: audioOnly ? `audio:${selectedAudio}` : gif ? "gif" : `video:${selectedFormat}`,
+            quality: selectedQuality || undefined,
+            size_bytes: blob.size,
+          }),
+        }).catch(() => {});
+      }
+
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = filename;
@@ -125,6 +153,28 @@ export function VideoPreview({
         <Lock className="w-2.5 h-2.5" /> PRO
       </span>
     ) : null;
+
+  const saveFavorite = async () => {
+    if (!isLoggedIn) {
+      setFavState("login");
+      return;
+    }
+    setFavState("saving");
+    try {
+      const res = await fetch("/api/me/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: data.webpageUrl,
+          title: data.title,
+          platform: data.platform,
+        }),
+      });
+      setFavState(res.ok ? "saved" : "idle");
+    } catch {
+      setFavState("idle");
+    }
+  };
 
   const chipBase =
     "bg-muted border-border hover:border-brand-400 dark:hover:border-brand-600";
@@ -167,7 +217,7 @@ export function VideoPreview({
                 {t("preview.playlistCount", {
                   count: data.playlistItems?.length ?? 0,
                 })}{" "}
-                <ProBadge show />
+                <ProBadge show={!limits.playlist} />
               </p>
             </div>
           )}
@@ -204,7 +254,7 @@ export function VideoPreview({
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {displayHeights.map((h) => {
                   const fmt = videoFormats.find((f) => f.height === h);
-                  const pro = h > 1080;
+                  const pro = h > limits.maxQuality;
                   const active = selectedQuality === fmt?.formatId;
                   return (
                     <button
@@ -246,7 +296,7 @@ export function VideoPreview({
                     }`}
                   >
                     {f.label}
-                    <ProBadge show={f.pro} />
+                    <ProBadge show={!limits.videoFormats.includes(f.id as never)} />
                   </button>
                 ))}
               </div>
@@ -266,7 +316,7 @@ export function VideoPreview({
                     }`}
                   >
                     {f.label}
-                    <ProBadge show={f.pro} />
+                    <ProBadge show={!limits.audioFormats.includes(f.id as never)} />
                   </button>
                 ))}
               </div>
@@ -284,12 +334,13 @@ export function VideoPreview({
                   className="accent-brand-600"
                 />
                 <ImageIcon className="w-3.5 h-3.5" /> {t("preview.gif")}{" "}
-                <ProBadge show />
+                <ProBadge show={!limits.gif} />
               </label>
             )}
             {data.subtitles.length > 0 && (
               <label className="flex items-center gap-2 text-xs cursor-pointer text-muted-foreground">
                 <Captions className="w-3.5 h-3.5" /> {t("preview.subtitles")}
+                <ProBadge show={!limits.subtitles} />
                 <select
                   value={selectedLang || ""}
                   onChange={(e) => setSelectedLang(e.target.value || null)}
@@ -323,6 +374,33 @@ export function VideoPreview({
               <>
                 <Download className="w-4 h-4" /> {t("preview.download")}
               </>
+            )}
+          </button>
+
+          <button
+            onClick={saveFavorite}
+            disabled={favState === "saving" || favState === "saved"}
+            aria-label={t("preview.saveFavorite")}
+            title={
+              !isLoggedIn
+                ? t("preview.goLoginForFav")
+                : t("preview.saveFavorite")
+            }
+            className={`mt-3 sm:mt-0 sm:ml-3 sm:self-start px-4 py-2.5 rounded-lg border text-sm font-medium flex items-center gap-2 transition-colors ${
+              favState === "saved"
+                ? "border-brand-500 text-brand-600 dark:text-brand-400"
+                : "border-border text-muted-foreground hover:border-brand-400 hover:text-foreground"
+            }`}
+          >
+            {favState === "saved" ? (
+              <>✓ {t("preview.savedFavorite")}</>
+            ) : favState === "saving" ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {t("preview.saveFavorite")}
+              </>
+            ) : (
+              <Heart className="w-4 h-4" />
             )}
           </button>
         </div>

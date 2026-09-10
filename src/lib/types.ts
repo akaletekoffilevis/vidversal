@@ -92,6 +92,8 @@ export interface TierLimits {
   subtitles: boolean;
   playlist: boolean;
   dailyDownloads: number;
+  maxFileSizeMB: number;
+  parallelDownloads: number;
 }
 
 export const TIER_LIMITS: Record<Tier, TierLimits> = {
@@ -105,6 +107,8 @@ export const TIER_LIMITS: Record<Tier, TierLimits> = {
     subtitles: false,
     playlist: false,
     dailyDownloads: 10,
+    maxFileSizeMB: 512,
+    parallelDownloads: 1,
   },
   pro: {
     maxQuality: 8192,
@@ -116,5 +120,7 @@ export const TIER_LIMITS: Record<Tier, TierLimits> = {
     subtitles: true,
     playlist: true,
     dailyDownloads: Infinity,
+    maxFileSizeMB: 8192,
+    parallelDownloads: 3,
   },
 };
