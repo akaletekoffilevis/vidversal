@@ -16,6 +16,24 @@ const YT_EXTRACTOR_ARGS = [
   "youtube:player_client=android,web",
 ];
 
+// Le PETIT PLUS qui règle "Sign in to confirm you're not a bot" :
+// des cookies YouTube d'un vrai compte, passés via la variable d'environnement
+// YT_COOKIES (contenu d'un cookies.txt au format Netscape). Le fichier est
+// matérialisé dans /tmp puis passé avec "--cookies".
+let cookieFile: string | null = null;
+async function youTubeArgs(): Promise<string[]> {
+  const args = [...YT_EXTRACTOR_ARGS];
+  const cookies = process.env.YT_COOKIES;
+  if (cookies) {
+    if (!cookieFile) {
+      cookieFile = path.join(os.tmpdir(), "vidversal-cookies.txt");
+      await fs.writeFile(cookieFile, cookies, "utf8");
+    }
+    args.push("--cookies", cookieFile);
+  }
+  return args;
+}
+
 export interface DownloadOptions {
   formatId?: string;
   audioOnly?: boolean;
@@ -113,7 +131,7 @@ export async function getVideoInfo(url: string): Promise<VideoInfo> {
     "--dump-json",
     "--no-playlist",
     "--no-warnings",
-    ...YT_EXTRACTOR_ARGS,
+    ...(await youTubeArgs()),
   ];
 
   if (isPlaylistUrl(url)) {
@@ -254,7 +272,7 @@ export async function downloadVideo(
         "-f", "best[height<=480]/best",
         "-o", gifPath,
         "--convert-formats", options.videoFormat || "gif",
-        ...YT_EXTRACTOR_ARGS,
+        ...(await youTubeArgs()),
         url,
       ],
       { timeout: 120000 }
@@ -275,7 +293,7 @@ export async function downloadVideo(
       "-o", outputPath,
       "--no-playlist",
       "--no-warnings",
-      ...YT_EXTRACTOR_ARGS,
+      ...(await youTubeArgs()),
       url,
     ];
     await execFileAsync("yt-dlp", args, { timeout: 120000 });
@@ -305,7 +323,7 @@ export async function downloadVideo(
     ...(options.embedSubtitles
       ? ["--write-sub", "--write-auto-sub", "--embed-subs", "--sub-langs", options.lang || "all"]
       : []),
-    ...YT_EXTRACTOR_ARGS,
+    ...(await youTubeArgs()),
     url,
   ];
 
@@ -339,7 +357,7 @@ export async function downloadSubtitles(
       "--sub-format", "srt/vtt/best",
       "-o", outputBase,
       "--no-warnings",
-      ...YT_EXTRACTOR_ARGS,
+      ...(await youTubeArgs()),
       url,
     ],
     { timeout: 60000 }
