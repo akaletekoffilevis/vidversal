@@ -73,7 +73,7 @@ export const messagesEn = {
     placeholder: "Paste the video link here...",
     analyze: "Analyze link",
     analyzing: "Analyzing...",
-    platforms: "YouTube · TikTok · Instagram · X/Twitter · Facebook · Twitch · Dailymotion · Vimeo · Reddit · SpankBang · Pornhub · Xvideos…",
+    platforms: "YouTube · TikTok · Instagram · X/Twitter · Facebook · Twitch",
     soonAvailable: "Downloading is coming soon — the site is live in preview.",
     errorDefault: "Something went wrong",
     quotaExceeded: "Daily quota reached — try again tomorrow or upgrade to PRO.",

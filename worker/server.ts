@@ -13,10 +13,12 @@ import { getVideoInfo, downloadVideo } from "./src/lib/ytdlp";
 const PORT = Number(process.env.PORT || 4000);
 
 // Filet de secours cobalt — utilisé quand yt-dlp échoue (YouTube "not a bot",
-// HTTP 403 datacenter, URL non supportée...). Désactivé si COBALT_API_URL absent
-// (cf. docs cobalt : utiliser uniquement une instance autorisée).
-const COBALT_ENABLED = Boolean(process.env.COBALT_API_URL);
-const COBALT_CLUSTER = (process.env.COBALT_API_URL || "").replace(/\/$/, "");
+// HTTP 403 datacenter, URL non supportée...). Instance par défaut : celle de
+// vidversal ; on peut pointer ailleurs via COBALT_API_URL.
+const COBALT_ENABLED = true;
+const COBALT_CLUSTER = (
+  process.env.COBALT_API_URL || "https://cobalt-ra1w.onrender.com"
+).replace(/\/$/, "");
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
