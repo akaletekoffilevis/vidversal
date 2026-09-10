@@ -185,11 +185,13 @@ export function VideoPreview({
       <div className="flex flex-col sm:flex-row">
         {/* Miniature */}
         <div className="relative sm:w-64 shrink-0 aspect-video sm:aspect-auto bg-muted">
-          <img
-            src={data.thumbnail}
-            alt={data.title}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+          {data.thumbnail && (
+            <img
+              src={data.thumbnail}
+              alt={data.title}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
           <span className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/70 text-white text-[11px] px-2 py-0.5 rounded font-mono">
             <Clock className="w-3 h-3" />
             {min}:{sec.toString().padStart(2, "0")}

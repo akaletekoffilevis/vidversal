@@ -73,7 +73,7 @@ export const messagesFr = {
     placeholder: "Collez le lien de la vidéo ici...",
     analyze: "Analyser le lien",
     analyzing: "Analyse en cours...",
-    platforms: "YouTube · TikTok · Instagram · X/Twitter · Facebook · Twitch · Dailymotion · Vimeo · Reddit",
+    platforms: "YouTube · TikTok · Instagram · X/Twitter · Facebook · Twitch · Dailymotion · Vimeo · Reddit · SpankBang · Pornhub · Xvideos…",
     soonAvailable: "Le téléchargement arrive bientôt — le site est en ligne en avant-première.",
     errorDefault: "Une erreur est survenue",
     quotaExceeded: "Quota quotidien atteint — réessayez demain ou passez au plan PRO.",
@@ -441,7 +441,7 @@ export const messagesFr = {
     items: [
       {
         q: "Quelles plateformes sont supportées ?",
-        a: "YouTube, TikTok, Instagram, X/Twitter, Facebook, Twitch, Vimeo, Dailymotion, Reddit, et la plupart des sites de partage vidéo. Collez simplement le lien et laissez Vidversal faire le reste.",
+        a: "YouTube, TikTok, Instagram, X/Twitter, Facebook, Twitch, Vimeo, Dailymotion, Reddit, la plupart des sites de partage vidéo, ainsi que de nombreux sites adultes (SpankBang, Pornhub, Xvideos, etc.). Collez simplement le lien et laissez Vidversal faire le reste.",
       },
       {
         q: "Est-ce gratuit ?",

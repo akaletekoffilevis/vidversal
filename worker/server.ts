@@ -4,12 +4,19 @@
 // GET    /health
 // Entrées sorties identiques à src/app/api/info + src/app/api/download de Next.js.
 
-import { createServer } from "node:http";
+import { createServer, type ServerResponse } from "node:http";
 import { stat, unlink } from "node:fs/promises";
 import { createReadStream } from "node:fs";
+import { Readable } from "node:stream";
 import { getVideoInfo, downloadVideo } from "./src/lib/ytdlp";
 
 const PORT = Number(process.env.PORT || 4000);
+
+// Filet de secours cobalt — utilisé quand yt-dlp échoue (YouTube "not a bot",
+// HTTP 403 datacenter, URL non supportée...). Désactivé si COBALT_API_URL absent
+// (cf. docs cobalt : utiliser uniquement une instance autorisée).
+const COBALT_ENABLED = Boolean(process.env.COBALT_API_URL);
+const COBALT_CLUSTER = (process.env.COBALT_API_URL || "").replace(/\/$/, "");
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -47,6 +54,137 @@ function errorBody(err: unknown): { error: string; details: string } {
   const message = err instanceof Error ? err.message : "Erreur inconnue";
   console.error("[worker]", message);
   return { error: "Échec du traitement", details: message };
+}
+
+function cobaltAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  };
+  const key = process.env.COBALT_API_KEY;
+  if (key) headers.Authorization = `Bearer ${key}`;
+  return headers;
+}
+
+// Cobalt annonce un fichier dispo : on retourne des infos minimalistes pour
+// l'aperçu ; le vrai fichier est récupéré au moment du /download.
+async function cobaltInfo(target: string) {
+  if (!COBALT_ENABLED) return null;
+  try {
+    const r = await fetch(`${COBALT_CLUSTER}/`, {
+      method: "POST",
+      headers: cobaltAuthHeaders(),
+      body: JSON.stringify({ url: target, filenameStyle: "classic" }),
+      signal: AbortSignal.timeout(45000),
+    });
+    const data = (await r.json().catch(() => null)) as {
+      status?: string;
+    } | null;
+    if (!r.ok || !data || !["tunnel", "redirect", "picker", "local-processing"].includes(data.status || ""))
+      return null;
+    let host = "vidéo";
+    try {
+      host = new URL(target).hostname.replace(/^www\./, "");
+    } catch {
+      /* ignore */
+    }
+    return {
+      id: String(Date.now()),
+      title: `Vidéo (${host})`,
+      thumbnail: "",
+      duration: 0,
+      uploader: "Cobalt",
+      webpageUrl: target,
+      formats: [],
+      subtitles: [],
+      platform: host,
+      playlist: false,
+      playlistItems: [],
+      isShort: false,
+      isReel: false,
+    };
+  } catch {
+    return null;
+  }
+}
+
+// Télécharge via cobalt et stream le fichier vers le client.
+// Remap les formats audio demandés vers ceux que cobalt accepte.
+const COBALT_AUDIO: Record<string, string> = {
+  mp3: "mp3",
+  wav: "wav",
+  opus: "opus",
+  flac: "wav",
+  aac: "mp3",
+  ogg: "ogg",
+};
+
+async function cobaltStream(
+  res: ServerResponse,
+  target: string,
+  audioOnly: boolean,
+  audioFormat: string
+): Promise<void> {
+  if (!COBALT_ENABLED) throw new Error("cobalt non configuré (COBALT_API_URL)");
+  const body: Record<string, unknown> = {
+    url: target,
+    filenameStyle: "classic",
+    disableMetadata: true,
+  };
+  if (audioOnly) {
+    body.downloadMode = "audio";
+    body.audioFormat = COBALT_AUDIO[audioFormat] || "mp3";
+  } else {
+    body.downloadMode = "auto";
+    body.videoQuality = "max";
+  }
+
+  const r = await fetch(`${COBALT_CLUSTER}/`, {
+    method: "POST",
+    headers: cobaltAuthHeaders(),
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(60000),
+  });
+  if (!r.ok) throw new Error(`cobalt: HTTP ${r.status}`);
+  const data = (await r.json()) as {
+    status?: string;
+    url?: string;
+    filename?: string;
+    error?: { code?: string };
+    picker?: { type?: string; url?: string }[];
+  };
+  if (!data || data.status === "error")
+    throw new Error(`cobalt: ${data?.error?.code || "erreur inconnue"}`);
+
+  let url = "";
+  let filename = data.filename || "";
+  if (data.status === "picker") {
+    const item = (data.picker || []).find(
+      (p) => p.type === "video" || p.type === "gif"
+    );
+    url = item?.url || "";
+  } else if (data.status === "tunnel" || data.status === "redirect") {
+    url = data.url || "";
+  }
+  if (!url) throw new Error(`cobalt: réponse inattendue (${data.status})`);
+
+  const upstream = await fetch(url, {
+    signal: AbortSignal.timeout(600000),
+  });
+  if (!upstream.ok) throw new Error(`cobalt stream: HTTP ${upstream.status}`);
+
+  const contentType = upstream.headers.get("content-type") || "application/octet-stream";
+  const contentLength = upstream.headers.get("content-length") || undefined;
+  const safeName = (filename || "vidversal-download.mp4").replace(/["\\]/g, "_");
+
+  for (const [k, v] of Object.entries(CORS)) res.setHeader(k, v);
+  res.writeHead(200, {
+    "Content-Type": contentType,
+    "Content-Length": contentLength,
+    "Content-Disposition": `attachment; filename="${safeName}"`,
+    "Cache-Control": "no-store",
+  });
+  Readable.fromWeb(upstream.body as never).pipe(res);
 }
 
 const server = createServer(async (req, res) => {
@@ -90,6 +228,11 @@ const server = createServer(async (req, res) => {
       const data = await getVideoInfo(target);
       json(res, 200, { success: true, data });
     } catch (err) {
+      const fallback = await cobaltInfo(target);
+      if (fallback) {
+        json(res, 200, { success: true, data: fallback });
+        return;
+      }
       json(res, 500, errorBody(err));
     }
     return;
@@ -141,6 +284,12 @@ const server = createServer(async (req, res) => {
       });
       filePath = result.filePath;
     } catch (err) {
+      try {
+        await cobaltStream(res, target, audioOnly, audioOnly ? audioFormat : "mp3");
+        return;
+      } catch {
+        // on garde l'erreur d'origine
+      }
       json(res, 500, errorBody(err));
       return;
     }

@@ -76,7 +76,20 @@ function detectPlatform(url: string): string {
   if (u.includes("dailymotion.com")) return "Dailymotion";
   if (u.includes("reddit.com")) return "Reddit";
   if (u.includes("vimeo.com")) return "Vimeo";
-  if (u.includes("spankbang.com")) return "Autre";
+  if (u.includes("spankbang.com")) return "SpankBang";
+  if (u.includes("pornhub.com")) return "Pornhub";
+  if (u.includes("xvideos.com")) return "Xvideos";
+  if (u.includes("xhamster")) return "XHamster";
+  if (u.includes("xnxx.com")) return "XNXX";
+  if (u.includes("redtube.com")) return "RedTube";
+  if (u.includes("youporn.com")) return "YouPorn";
+  if (u.includes("beeg.com")) return "Beeg";
+  if (u.includes("eporner.com")) return "Eporner";
+  if (u.includes("manyvids.com")) return "ManyVids";
+  if (u.includes("motherless.com")) return "Motherless";
+  if (u.includes("chaturbate.com")) return "Chaturbate";
+  if (u.includes("stripchat.com")) return "Stripchat";
+  if (u.includes("cam4.com")) return "CAM4";
   return "Autre";
 }
 

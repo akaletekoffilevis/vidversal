@@ -73,7 +73,7 @@ export const messagesEn = {
     placeholder: "Paste the video link here...",
     analyze: "Analyze link",
     analyzing: "Analyzing...",
-    platforms: "YouTube · TikTok · Instagram · X/Twitter · Facebook · Twitch · Dailymotion · Vimeo · Reddit",
+    platforms: "YouTube · TikTok · Instagram · X/Twitter · Facebook · Twitch · Dailymotion · Vimeo · Reddit · SpankBang · Pornhub · Xvideos…",
     soonAvailable: "Downloading is coming soon — the site is live in preview.",
     errorDefault: "Something went wrong",
     quotaExceeded: "Daily quota reached — try again tomorrow or upgrade to PRO.",
@@ -441,7 +441,7 @@ networkError: "Network error",
     items: [
       {
         q: "Which platforms are supported?",
-        a: "YouTube, TikTok, Instagram, X/Twitter, Facebook, Twitch, Vimeo, Dailymotion, Reddit, and most video-sharing sites. Simply paste the link and let Vidversal do the rest.",
+        a: "YouTube, TikTok, Instagram, X/Twitter, Facebook, Twitch, Vimeo, Dailymotion, Reddit, most video-sharing sites, and many adult sites (SpankBang, Pornhub, Xvideos, etc.). Simply paste the link and let Vidversal do the rest.",
       },
       {
         q: "Is it free?",
