@@ -8,6 +8,14 @@ import fs from "fs/promises";
 const execFileAsync = promisify(execFile);
 const DOWNLOAD_DIR = path.join(os.tmpdir(), "vidversal-downloads");
 
+// YouTube renvoie parfois 403 sur les IP de datacenter (Render, VPS...).
+// Le client "android" (et repli web) contourne ce blocage sans compromettre
+// les autres plateformes (ignoré par les extracteurs non-YouTube).
+const YT_EXTRACTOR_ARGS = [
+  "--extractor-args",
+  "youtube:player_client=android,web",
+];
+
 export interface DownloadOptions {
   formatId?: string;
   audioOnly?: boolean;
@@ -105,6 +113,7 @@ export async function getVideoInfo(url: string): Promise<VideoInfo> {
     "--dump-json",
     "--no-playlist",
     "--no-warnings",
+    ...YT_EXTRACTOR_ARGS,
   ];
 
   if (isPlaylistUrl(url)) {
@@ -245,6 +254,7 @@ export async function downloadVideo(
         "-f", "best[height<=480]/best",
         "-o", gifPath,
         "--convert-formats", options.videoFormat || "gif",
+        ...YT_EXTRACTOR_ARGS,
         url,
       ],
       { timeout: 120000 }
@@ -265,6 +275,7 @@ export async function downloadVideo(
       "-o", outputPath,
       "--no-playlist",
       "--no-warnings",
+      ...YT_EXTRACTOR_ARGS,
       url,
     ];
     await execFileAsync("yt-dlp", args, { timeout: 120000 });
@@ -294,6 +305,7 @@ export async function downloadVideo(
     ...(options.embedSubtitles
       ? ["--write-sub", "--write-auto-sub", "--embed-subs", "--sub-langs", options.lang || "all"]
       : []),
+    ...YT_EXTRACTOR_ARGS,
     url,
   ];
 
@@ -327,6 +339,7 @@ export async function downloadSubtitles(
       "--sub-format", "srt/vtt/best",
       "-o", outputBase,
       "--no-warnings",
+      ...YT_EXTRACTOR_ARGS,
       url,
     ],
     { timeout: 60000 }
